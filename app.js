@@ -3,13 +3,30 @@ const ACTIVE_CUSTOMER_KEY = "the-carwash-at-shell-active-customer";
 const RESPONSE_LOOKUP_KEY = "the-carwash-at-shell-response-phone";
 const SEEN_REPLIES_KEY = "the-carwash-at-shell-seen-replies-v1";
 const SEEN_BOOKING_ALERTS_KEY = "the-carwash-at-shell-seen-booking-alerts-v1";
+const OWNER_SEEN_BOOKINGS_KEY = "the-carwash-at-shell-owner-seen-bookings-v1";
+const OWNER_SEEN_FEEDBACK_KEY = "the-carwash-at-shell-owner-seen-feedback-v1";
 const OWNER_CREDENTIAL_KEY = "the-carwash-at-shell-owner-credential-v1";
 const STATE_API_URL = "api/state";
 const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerselect1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerpopups1";
+const FALLBACK_MENU_PRODUCTS = [
+  { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
+  { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
+  { id: "sedan-hatch-1", name: "SEDAN / HATCH", description: "", price: 55, category: "WASH & GO", sku: "S/H002", vatEnabled: true },
+  { id: "taxi-minibus-1", name: "TAXI / MINIVAN", description: "", price: 120, category: "OUTSIDE ONLY", sku: "T/M002", vatEnabled: true },
+  { id: "suv-double-cab-2", name: "SUV / DOUBLE CAB", description: "", price: 85, category: "OUTSIDE ONLY", sku: "S/DC003", vatEnabled: true },
+  { id: "sedan-hatch", name: "SEDAN / HATCH", description: "", price: 75, category: "OUTSIDE ONLY", sku: "S/H001", vatEnabled: true },
+  { id: "taxi-minibus", name: "TAXI / MINIVAN", description: "", price: 80, category: "INSIDE ONLY", sku: "T/M001", vatEnabled: true },
+  { id: "suv-double-cab-1", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "INSIDE ONLY", sku: "S/DC002", vatEnabled: true },
+  { id: "hatch-sedan", name: "HATCH / SEDAN", description: "", price: 55, category: "INSIDE ONLY", sku: "H/S001", vatEnabled: true },
+  { id: "aurum", name: "AURUM", description: "LOCAL ACCOUNT", price: 100, category: "FULL WASHES", sku: "AUR001", vatEnabled: true },
+  { id: "minibus-taxi", name: "TAXI / MINIVAN", description: "", price: 160, category: "FULL WASHES", sku: "M/T001", vatEnabled: true },
+  { id: "suv-double-cab", name: "SUV / DOUBLE CAB", description: "", price: 120, category: "FULL WASHES", sku: "S/DC001", vatEnabled: true },
+  { id: "full-wash-hatchsedan", name: "HATCH/SEDAN", description: "", price: 100, category: "FULL WASHES", sku: "FWH001", vatEnabled: true },
+];
 
 const emptyState = {
   customers: [],
@@ -34,6 +51,8 @@ let ownerSetupRequested = new URLSearchParams(window.location.search).get("owner
 let responseLookupPhone = localStorage.getItem(RESPONSE_LOOKUP_KEY) || "";
 let pendingReplyPopup = null;
 let pendingBookingAlert = null;
+let pendingFeedbackThanks = null;
+let pendingOwnerAlert = null;
 let deferredInstallPrompt = null;
 let menuItems = [];
 let menuStatus = "loading";
@@ -57,6 +76,7 @@ const elements = {
   bookingAlertModal: document.querySelector("#bookingAlertModal"),
   bookingAlertModalMessage: document.querySelector("#bookingAlertModalMessage"),
   bookingAlertModalMeta: document.querySelector("#bookingAlertModalMeta"),
+  bookingAlertModalTitle: document.querySelector("#bookingAlertModalTitle"),
   bookingAlertViewButton: document.querySelector("#bookingAlertViewButton"),
   bookModeButton: document.querySelector("#bookModeButton"),
   bookView: document.querySelector("#bookView"),
@@ -88,6 +108,11 @@ const elements = {
   feedbackName: document.querySelector("#feedbackName"),
   feedbackPhone: document.querySelector("#feedbackPhone"),
   feedbackRating: document.querySelector("#feedbackRating"),
+  feedbackThanksCloseButton: document.querySelector("#feedbackThanksCloseButton"),
+  feedbackThanksModal: document.querySelector("#feedbackThanksModal"),
+  feedbackThanksModalMessage: document.querySelector("#feedbackThanksModalMessage"),
+  feedbackThanksModalMeta: document.querySelector("#feedbackThanksModalMeta"),
+  feedbackThanksViewButton: document.querySelector("#feedbackThanksViewButton"),
   feedbackType: document.querySelector("#feedbackType"),
   feedbackView: document.querySelector("#feedbackView"),
   luckyDrawList: document.querySelector("#luckyDrawList"),
@@ -129,12 +154,20 @@ const elements = {
   ownerAddFacebookFollowed: document.querySelector("#ownerAddFacebookFollowed"),
   ownerAddWhatsappOptIn: document.querySelector("#ownerAddWhatsappOptIn"),
   ownerAlert: document.querySelector("#ownerAlert"),
+  ownerAlertCloseButton: document.querySelector("#ownerAlertCloseButton"),
+  ownerAlertModal: document.querySelector("#ownerAlertModal"),
+  ownerAlertModalLabel: document.querySelector("#ownerAlertModalLabel"),
+  ownerAlertModalMessage: document.querySelector("#ownerAlertModalMessage"),
+  ownerAlertModalMeta: document.querySelector("#ownerAlertModalMeta"),
+  ownerAlertModalTitle: document.querySelector("#ownerAlertModalTitle"),
+  ownerAlertViewButton: document.querySelector("#ownerAlertViewButton"),
   ownerBookingList: document.querySelector("#ownerBookingList"),
   ownerBookingSummary: document.querySelector("#ownerBookingSummary"),
   ownerBookingsPanel: document.querySelector("#ownerBookingsPanel"),
   ownerCustomerSearch: document.querySelector("#ownerCustomerSearch"),
   ownerCustomerSearchButton: document.querySelector("#ownerCustomerSearchButton"),
   ownerCustomerSelect: document.querySelector("#ownerCustomerSelect"),
+  ownerFeedbackPanel: document.querySelector("#ownerFeedbackPanel"),
   ownerForgetButton: document.querySelector("#ownerForgetButton"),
   ownerLockButton: document.querySelector("#ownerLockButton"),
   ownerLockPanel: document.querySelector("#ownerLockPanel"),
@@ -477,12 +510,15 @@ async function loadMenu() {
     if (!response.ok) throw new Error("Menu CSV could not be loaded.");
     const rows = parseProductCsv(await response.text());
     menuItems = rows.map(normalizeMenuItem).filter((item) => item.name && item.category);
+    if (!menuItems.length) throw new Error("Menu CSV did not contain products.");
     state.menuProducts = menuItems;
     menuStatus = "ready";
     saveState();
   } catch {
-    menuStatus = "error";
-    menuItems = [];
+    menuItems = FALLBACK_MENU_PRODUCTS.map(normalizeMenuItem);
+    state.menuProducts = menuItems;
+    menuStatus = "ready";
+    saveState();
   }
 
   render();
@@ -567,12 +603,33 @@ function saveSeenBookingAlerts(seenAlerts) {
   localStorage.setItem(SEEN_BOOKING_ALERTS_KEY, JSON.stringify([...seenAlerts]));
 }
 
+function readSeenOwnerAlerts(storageKey) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    return Array.isArray(saved) ? new Set(saved) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSeenOwnerAlerts(storageKey, seenAlerts) {
+  localStorage.setItem(storageKey, JSON.stringify([...seenAlerts]));
+}
+
 function replyKey(item) {
   return `${item.id}:${item.replyDate || ""}`;
 }
 
 function bookingAlertKey(booking) {
   return `${booking.id}:${booking.status}:${booking.queueNumber || ""}:${booking.updatedAt || ""}`;
+}
+
+function ownerBookingAlertKey(booking) {
+  return `${booking.id}:${booking.status}:${booking.updatedAt || booking.date || ""}`;
+}
+
+function ownerFeedbackAlertKey(item) {
+  return `${item.id}:${item.date || ""}`;
 }
 
 function markReplySeen(item) {
@@ -788,6 +845,7 @@ function render() {
   renderCustomerResponses();
   renderCustomerReplyPreview();
   renderBookingConfirmationPopup();
+  renderOwnerPopup();
   saveState();
 }
 
@@ -970,7 +1028,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "ownerselect1");
+  url.searchParams.set("v", "ownerpopups1");
   return url.href;
 }
 
@@ -1099,9 +1157,11 @@ function renderCustomerBookingStatus() {
   });
 }
 
-function confirmedCustomerBookings() {
+function alertableCustomerBookings() {
   return customerBookings().filter(
-    (booking) => booking.status === "queued" && String(booking.queueNumber || "").trim(),
+    (booking) =>
+      (booking.status === "queued" && String(booking.queueNumber || "").trim()) ||
+      booking.status === "completed",
   );
 }
 
@@ -1112,11 +1172,17 @@ function renderBookingConfirmationPopup() {
   if (modalOpen) return;
 
   const seenAlerts = readSeenBookingAlerts();
-  const booking = confirmedCustomerBookings().find((item) => !seenAlerts.has(bookingAlertKey(item)));
+  const booking = alertableCustomerBookings().find((item) => !seenAlerts.has(bookingAlertKey(item)));
   if (!booking) return;
 
   pendingBookingAlert = booking;
-  elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been confirmed. Your queue number is ${booking.queueNumber}.`;
+  if (booking.status === "completed") {
+    elements.bookingAlertModalTitle.textContent = "Your wash is complete";
+    elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been marked complete. Thank you for visiting THE CARWASH @ SHELL.`;
+  } else {
+    elements.bookingAlertModalTitle.textContent = "Your wash is in the queue";
+    elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been confirmed. Your queue number is ${booking.queueNumber}.`;
+  }
   elements.bookingAlertModalMeta.textContent = `${booking.category} - ${booking.plate || "No plate"} - ${booking.date}`;
   elements.bookingAlertModal.classList.remove("is-hidden");
 }
@@ -1314,6 +1380,98 @@ function updateBookingStatus(bookingId, status) {
   booking.status = status;
   booking.updatedAt = today();
   render();
+}
+
+function pendingOwnerBookingAlerts() {
+  const seen = readSeenOwnerAlerts(OWNER_SEEN_BOOKINGS_KEY);
+  return [...state.bookings]
+    .filter((booking) => booking.status === "pending")
+    .filter((booking) => !seen.has(ownerBookingAlertKey(booking)))
+    .sort((a, b) => String(b.updatedAt || b.date).localeCompare(String(a.updatedAt || a.date)));
+}
+
+function pendingOwnerFeedbackAlerts() {
+  const seen = readSeenOwnerAlerts(OWNER_SEEN_FEEDBACK_KEY);
+  return [...state.feedback]
+    .filter((item) => !seen.has(ownerFeedbackAlertKey(item)))
+    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+}
+
+function showOwnerBookingAlert(booking) {
+  pendingOwnerAlert = {
+    type: "booking",
+    key: ownerBookingAlertKey(booking),
+  };
+  elements.ownerAlertModalLabel.textContent = "New booking";
+  elements.ownerAlertModalTitle.textContent = "New wash booking";
+  elements.ownerAlertModalMessage.textContent = `${booking.customerName} requested ${booking.serviceName}.`;
+  elements.ownerAlertModalMeta.textContent = `${booking.phone} - ${booking.plate || "No plate"} - ${formatPrice(booking.price)}`;
+  elements.ownerAlertViewButton.textContent = "View booking";
+  elements.ownerAlertModal.classList.remove("is-hidden");
+}
+
+function showOwnerFeedbackAlert(item) {
+  pendingOwnerAlert = {
+    type: "feedback",
+    key: ownerFeedbackAlertKey(item),
+  };
+  elements.ownerAlertModalLabel.textContent = "New feedback";
+  elements.ownerAlertModalTitle.textContent = `${item.type} from ${item.name}`;
+  elements.ownerAlertModalMessage.textContent = String(item.message || "");
+  elements.ownerAlertModalMeta.textContent = `${item.phone} - Rating ${item.rating || "?"}/5 - ${item.date}`;
+  elements.ownerAlertViewButton.textContent = "View feedback";
+  elements.ownerAlertModal.classList.remove("is-hidden");
+}
+
+function renderOwnerPopup() {
+  if (!ownerUnlocked || currentMode !== "owner") return;
+  if (!elements.ownerAlertModal.classList.contains("is-hidden")) return;
+
+  const booking = pendingOwnerBookingAlerts()[0];
+  if (booking) {
+    showOwnerBookingAlert(booking);
+    return;
+  }
+
+  const feedback = pendingOwnerFeedbackAlerts()[0];
+  if (feedback) {
+    showOwnerFeedbackAlert(feedback);
+  }
+}
+
+function markOwnerAlertSeen(alert = pendingOwnerAlert) {
+  if (!alert) return;
+  const storageKey = alert.type === "booking" ? OWNER_SEEN_BOOKINGS_KEY : OWNER_SEEN_FEEDBACK_KEY;
+  const seen = readSeenOwnerAlerts(storageKey);
+  seen.add(alert.key);
+  saveSeenOwnerAlerts(storageKey, seen);
+}
+
+function closeOwnerAlert(markSeen = true) {
+  if (markSeen) markOwnerAlertSeen();
+  pendingOwnerAlert = null;
+  elements.ownerAlertModal.classList.add("is-hidden");
+  setTimeout(renderOwnerPopup, 0);
+}
+
+function openOwnerPanel(panel) {
+  if (!panel) return;
+  panel.classList.remove("owner-collapsed");
+  const toggle = panel.querySelector(".owner-toggle-button");
+  if (toggle) {
+    toggle.textContent = "Close";
+    toggle.setAttribute("aria-expanded", "true");
+  }
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function viewOwnerAlert() {
+  const alert = pendingOwnerAlert;
+  markOwnerAlertSeen(alert);
+  pendingOwnerAlert = null;
+  elements.ownerAlertModal.classList.add("is-hidden");
+  setMode("owner");
+  openOwnerPanel(alert?.type === "booking" ? elements.ownerBookingsPanel : elements.ownerFeedbackPanel);
 }
 
 function selectedOwnerProduct() {
@@ -2081,6 +2239,28 @@ function openCustomerReplies() {
   renderCustomerReplyPreview();
 }
 
+function showFeedbackThanksPopup(item) {
+  pendingFeedbackThanks = item;
+  elements.feedbackThanksModalMessage.textContent =
+    "Your feedback was sent to the owner. We appreciate you helping us improve the carwash experience.";
+  elements.feedbackThanksModalMeta.textContent = `${item.type} - Rating ${item.rating}/5 - ${item.date}`;
+  elements.feedbackThanksModal.classList.remove("is-hidden");
+}
+
+function closeFeedbackThanksPopup() {
+  pendingFeedbackThanks = null;
+  elements.feedbackThanksModal.classList.add("is-hidden");
+}
+
+function viewFeedbackThanks() {
+  if (pendingFeedbackThanks) {
+    setResponseLookupPhone(pendingFeedbackThanks.phone);
+  }
+  closeFeedbackThanksPopup();
+  setMode("feedback");
+  elements.customerResponseList.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 function updateCustomerFromOwner(customer) {
   const name = elements.manageCustomerName.value.trim();
   const phone = elements.manageCustomerPhone.value.trim();
@@ -2553,12 +2733,14 @@ function setOwnerUnlocked(unlocked) {
   ownerUnlocked = unlocked;
   if (!unlocked) {
     setOwnerAlert("");
+    closeOwnerAlert(false);
   } else {
     collapseOwnerPanels();
   }
   syncOwnerAccessVisibility();
   updateOwnerPrivacy();
   renderLuckyDraw();
+  renderOwnerPopup();
 }
 
 function updateOwnerPrivacy() {
@@ -2595,7 +2777,7 @@ function submitFeedback(event) {
     return;
   }
 
-  state.feedback.unshift({
+  const feedbackItem = {
     id: crypto.randomUUID(),
     type: elements.feedbackType.value,
     rating: Number(elements.feedbackRating.value),
@@ -2603,13 +2785,16 @@ function submitFeedback(event) {
     phone,
     message,
     date: today(),
-  });
+  };
+
+  state.feedback.unshift(feedbackItem);
 
   setResponseLookupPhone(phone);
   elements.feedbackForm.reset();
   setFeedbackAlert("Thank you. Your message has been saved for the owner.");
   renderFeedbackInbox();
   renderCustomerResponses();
+  showFeedbackThanksPopup(feedbackItem);
   saveState();
 }
 
@@ -2682,6 +2867,16 @@ elements.bookingAlertCloseButton.addEventListener("click", () => closeBookingAle
 elements.bookingAlertViewButton.addEventListener("click", viewBookingAlert);
 elements.bookingAlertModal.addEventListener("click", (event) => {
   if (event.target === elements.bookingAlertModal) closeBookingAlert(true);
+});
+elements.feedbackThanksCloseButton.addEventListener("click", closeFeedbackThanksPopup);
+elements.feedbackThanksViewButton.addEventListener("click", viewFeedbackThanks);
+elements.feedbackThanksModal.addEventListener("click", (event) => {
+  if (event.target === elements.feedbackThanksModal) closeFeedbackThanksPopup();
+});
+elements.ownerAlertCloseButton.addEventListener("click", () => closeOwnerAlert(true));
+elements.ownerAlertViewButton.addEventListener("click", viewOwnerAlert);
+elements.ownerAlertModal.addEventListener("click", (event) => {
+  if (event.target === elements.ownerAlertModal) closeOwnerAlert(true);
 });
 elements.responseLookupForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -2877,7 +3072,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=ownerselect1");
+    navigator.serviceWorker.register("sw.js?v=ownerpopups1");
   });
 }
 

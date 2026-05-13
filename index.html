@@ -8,10 +8,10 @@
     <meta name="apple-mobile-web-app-title" content="Carwash @ Shell" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH @ SHELL</title>
-    <link rel="manifest" href="manifest.webmanifest?v=ownerselect1" />
+    <link rel="manifest" href="manifest.webmanifest?v=ownerpopups1" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="icon" href="icons/icon-192.png" />
-    <link rel="stylesheet" href="styles.css?v=ownerselect1" />
+    <link rel="stylesheet" href="styles.css?v=ownerpopups1" />
   </head>
   <body>
     <div class="phone-app">
@@ -754,13 +754,39 @@
 
     <div class="reply-modal is-hidden" id="bookingAlertModal" role="dialog" aria-modal="true" aria-labelledby="bookingAlertModalTitle">
       <div class="reply-modal-card booking-alert-card">
-        <p class="eyebrow">Booking confirmed</p>
+        <p class="eyebrow">Booking update</p>
         <h2 id="bookingAlertModalTitle">Your wash is in the queue</h2>
         <p id="bookingAlertModalMessage"></p>
         <span id="bookingAlertModalMeta"></span>
         <div class="button-row">
           <button class="primary-action" id="bookingAlertViewButton" type="button">View booking</button>
           <button class="ghost-button" id="bookingAlertCloseButton" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reply-modal is-hidden" id="feedbackThanksModal" role="dialog" aria-modal="true" aria-labelledby="feedbackThanksModalTitle">
+      <div class="reply-modal-card">
+        <p class="eyebrow">Feedback sent</p>
+        <h2 id="feedbackThanksModalTitle">Thank you for your message</h2>
+        <p id="feedbackThanksModalMessage"></p>
+        <span id="feedbackThanksModalMeta"></span>
+        <div class="button-row">
+          <button class="primary-action" id="feedbackThanksViewButton" type="button">View message</button>
+          <button class="ghost-button" id="feedbackThanksCloseButton" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reply-modal is-hidden" id="ownerAlertModal" role="dialog" aria-modal="true" aria-labelledby="ownerAlertModalTitle">
+      <div class="reply-modal-card owner-alert-card">
+        <p class="eyebrow" id="ownerAlertModalLabel">Owner alert</p>
+        <h2 id="ownerAlertModalTitle">New customer update</h2>
+        <p id="ownerAlertModalMessage"></p>
+        <span id="ownerAlertModalMeta"></span>
+        <div class="button-row">
+          <button class="primary-action" id="ownerAlertViewButton" type="button">View</button>
+          <button class="ghost-button" id="ownerAlertCloseButton" type="button">Close</button>
         </div>
       </div>
     </div>
@@ -772,6 +798,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=ownerselect1"></script>
+    <script src="app.js?v=ownerpopups1"></script>
   </body>
 </html>
