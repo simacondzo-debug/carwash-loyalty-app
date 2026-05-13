@@ -1,0 +1,15 @@
+sep=,
+Product ID,Product Name,Description,Default Price,Brand,Category,SKU,Default Cost Price,Ask For Quantity,Default Quantity,Quantity Units,Ask For Price,VAT Enabled,Variant Price,Variant Enabled,Attribute 1,Value 1,Attribute 2,Value 2,Attribute 3,Value 3,Image URL,Barcode,Track Stock
+taxi-minibus-2,TAXI / MINIBUS,,80,,WASH & GO,T/M003,5,,,,,,,Yes,,,,,,,None,,No
+suv-double-cab-3,SUV / DOUBLE CAB,,65,,WASH & GO,S/DC004,5,,,,,,,Yes,,,,,,,None,,No
+sedan-hatch-1,SEDAN / HATCH,,55,,WASH & GO,S/H002,5,,,,,,,Yes,,,,,,,None,,No
+taxi-minibus-1,TAXI / MINIVAN,,120,,OUTSIDE ONLY,T/M002,10,,,,,,,Yes,,,,,,,None,,No
+suv-double-cab-2,SUV / DOUBLE CAB,,85,,OUTSIDE ONLY,S/DC003,5,,,,,,,Yes,,,,,,,None,,No
+sedan-hatch,SEDAN / HATCH,,75,,OUTSIDE ONLY,S/H001,5,,,,,,,Yes,,,,,,,None,,No
+taxi-minibus,TAXI / MINIVAN,,80,,INSIDE ONLY,T/M001,5,,,,,,,Yes,,,,,,,None,,No
+suv-double-cab-1,SUV / DOUBLE CAB,,65,,INSIDE ONLY,S/DC002,5,,,,,,,Yes,,,,,,,None,,No
+hatch-sedan,HATCH / SEDAN,,55,,INSIDE ONLY,H/S001,5,,,,,,,Yes,,,,,,,None,,No
+aurum,AURUM,LOCAL ACCOUNT,100,,FULL WASHES,AUR001,0,,,,,,,Yes,,,,,,,None,,No
+minibus-taxi,TAXI / MINIVAN ,,160,,FULL WASHES,M/T001,15,,,,,,,Yes,,,,,,,None,,No
+suv-double-cab,SUV / DOUBLE CAB,,120,,FULL WASHES,S/DC001,10,,,,,Yes,,Yes,,,,,,,None,,No
+full-wash-hatchsedan,HATCH/SEDAN,,100,,FULL WASHES,FWH001,5,,,,,Yes,,Yes,,,,,,,None,,No
