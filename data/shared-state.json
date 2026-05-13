@@ -1,0 +1,504 @@
+{
+  "version": 73,
+  "state": {
+    "customers": [
+      {
+        "id": "d26045e1-f58a-4bad-8ee1-589cf92ec07f",
+        "name": "Shell",
+        "phone": "0615459253",
+        "plate": "ACN 110 NW",
+        "vehicles": [
+          "ACN 110 NW"
+        ],
+        "stampBalance": 0,
+        "lifetimePaidWashes": 0,
+        "freeWashesRedeemed": 0,
+        "facebookFollowed": true,
+        "whatsappOptIn": true,
+        "lastWash": "2026-05-12",
+        "joined": "2026-05-12",
+        "manualCode": ""
+      },
+      {
+        "id": "2d78dbc6-c866-4b1a-b8af-fc3e83908132",
+        "name": "Masabata",
+        "phone": "0719575471",
+        "plate": "ABC 321 NW",
+        "vehicles": [
+          "ABC 321 NW"
+        ],
+        "stampBalance": 1,
+        "lifetimePaidWashes": 1,
+        "freeWashesRedeemed": 0,
+        "facebookFollowed": true,
+        "whatsappOptIn": true,
+        "lastWash": "2026-05-12",
+        "joined": "2026-05-12",
+        "manualCode": ""
+      },
+      {
+        "id": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "name": "Sibusiso Innocent Macondzo",
+        "phone": "+27671274347",
+        "plate": "LFD 197 NW",
+        "vehicles": [
+          "LFD 197 NW"
+        ],
+        "stampBalance": 2,
+        "lifetimePaidWashes": 11,
+        "freeWashesRedeemed": 1,
+        "facebookFollowed": true,
+        "whatsappOptIn": true,
+        "lastWash": "2026-05-12",
+        "joined": "2026-05-12",
+        "manualCode": ""
+      },
+      {
+        "id": "edeabacf-b0da-48fb-9fe4-e5b0adcf78e0",
+        "name": "Lloyd",
+        "phone": "0633322472",
+        "plate": "JMW913NW",
+        "vehicles": [
+          "JMW913NW"
+        ],
+        "stampBalance": 3,
+        "lifetimePaidWashes": 3,
+        "freeWashesRedeemed": 0,
+        "facebookFollowed": true,
+        "whatsappOptIn": true,
+        "lastWash": "2026-05-12",
+        "joined": "2026-05-12",
+        "manualCode": ""
+      }
+    ],
+    "activities": [
+      {
+        "id": "4f521d52-3fcb-4309-b217-b1af3e976550",
+        "customerId": "2d78dbc6-c866-4b1a-b8af-fc3e83908132",
+        "customerName": "Masabata",
+        "type": "paid",
+        "service": "WASH & GO - TAXI / MINIBUS",
+        "plate": "ABC 321 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "6d2a231d-ae43-45a6-8e10-35aeaf1c63bd",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "07816ba9-90a2-4a59-af92-29ab8a687257",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "bd18b367-3551-480e-9b78-cc9917ed9874",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "61ecbb3a-3250-431e-975e-5cf4476986ef",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "817b31fa-12d6-40b5-a938-cbf72939646f",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "867a97d1-b746-4fc9-acba-35206f7d4ddb",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "4f1bbfec-4b51-43c1-a162-c3fa54e9ed8a",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "7ae6113a-344a-425d-a529-32ed1362cdc4",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "de3ab90d-acab-4095-aac3-a8f3f06902c4",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Free wash now ready",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "28f6b55d-a1bd-473c-808f-8725eddb42c5",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "free",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "10th wash redeemed",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "4b96c809-ec5f-4571-b78a-d5ab88510e00",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "draw",
+        "service": "Lucky draw",
+        "plate": "LFD 197 NW",
+        "note": "Won 1 free wash every month for a year",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "778a5f00-d951-44eb-9fe4-634a967cff7e",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "Exterior wash",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "05d36b49-e724-4260-a3b2-95188fadc3f7",
+        "customerId": "edeabacf-b0da-48fb-9fe4-e5b0adcf78e0",
+        "customerName": "Lloyd",
+        "type": "paid",
+        "service": "WASH & GO - TAXI / MINIBUS",
+        "plate": "JMW913NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "4f967cc1-b999-4c77-a30f-b5d6979484d8",
+        "customerId": "edeabacf-b0da-48fb-9fe4-e5b0adcf78e0",
+        "customerName": "Lloyd",
+        "type": "paid",
+        "service": "WASH & GO - TAXI / MINIBUS",
+        "plate": "JMW913NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "ea6652e5-a6e4-47f0-ac8b-61cc1e2afa82",
+        "customerId": "edeabacf-b0da-48fb-9fe4-e5b0adcf78e0",
+        "customerName": "Lloyd",
+        "type": "paid",
+        "service": "WASH & GO - TAXI / MINIBUS",
+        "plate": "JMW913NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "db1206da-7cd4-41fc-bcc9-a26501b88f0d",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "WASH & GO - TAXI / MINIBUS",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "87cfb70f-963c-43e0-b460-2c2db44236f0",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "type": "paid",
+        "service": "WASH & GO - TAXI / MINIBUS",
+        "plate": "LFD 197 NW",
+        "note": "Owner verified",
+        "date": "2026-05-12"
+      }
+    ],
+    "draws": [
+      {
+        "id": "c54f513c-2344-46c4-a504-bac389534580",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "month": "2026-05",
+        "prize": "1 free wash every month for a year",
+        "date": "2026-05-12"
+      }
+    ],
+    "feedback": [
+      {
+        "id": "989fefa1-7391-4e4d-92ce-1fdfbe1679aa",
+        "type": "Complaint",
+        "rating": 5,
+        "name": "Masabata",
+        "phone": "0719575471",
+        "message": "Highly Satisfied ????",
+        "date": "2026-05-12",
+        "ownerReply": "THANK YOU",
+        "replyDate": "2026-05-12"
+      },
+      {
+        "id": "72f9e4f0-81ad-4dae-91a2-396f1c69b456",
+        "type": "Complaint",
+        "rating": 5,
+        "name": "Masabata",
+        "phone": "0719575471",
+        "message": "Highly satisfied ????",
+        "date": "2026-05-12",
+        "ownerReply": "APPRECIATED",
+        "replyDate": "2026-05-12"
+      },
+      {
+        "id": "c344187b-ad92-40e2-8ccf-63d4e82298b5",
+        "type": "Complaint",
+        "rating": 3,
+        "name": "Sibusiso Innocent Macondzo",
+        "phone": "+27671274347",
+        "message": "Took too long",
+        "date": "2026-05-12",
+        "ownerReply": "Sorry about that",
+        "replyDate": "2026-05-12"
+      },
+      {
+        "id": "2098b701-fda0-43a7-92ba-d484909b238c",
+        "type": "Complaint",
+        "rating": 3,
+        "name": "Response Test Customer",
+        "phone": "0733334444",
+        "message": "Customer response check 1778579014731",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "f22137a6-adb5-4b7d-8cf3-038e7d078e2f",
+        "type": "Suggestion",
+        "rating": 5,
+        "name": "Final Rating Test",
+        "phone": "0722223333",
+        "message": "Please keep the new rating option 1778578640432",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "5c937f22-b8eb-40d6-854c-92ad3821cc40",
+        "type": "Compliment",
+        "rating": 4,
+        "name": "Rating Test Customer",
+        "phone": "0711112222",
+        "message": "Great service rating test 1778578455506",
+        "date": "2026-05-12"
+      },
+      {
+        "id": "703089d8-5d53-4762-8e62-a5ed226417ad",
+        "type": "Complaint",
+        "name": "Test Customer",
+        "phone": "0712345678",
+        "message": "Please add more drying towels 1778577507922",
+        "date": "2026-05-12"
+      }
+    ],
+    "bookings": [
+      {
+        "id": "eb6f2c09-ff3c-43c8-8f19-97720fc72e01",
+        "customerId": "ec698856-0aa5-4e52-895d-197bb4d9829a",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "phone": "+27671274347",
+        "plate": "LFD 197 NW",
+        "serviceId": "hatch-sedan",
+        "serviceName": "HATCH / SEDAN",
+        "category": "INSIDE ONLY",
+        "price": 55,
+        "note": "14H00",
+        "status": "cancelled",
+        "queueNumber": "",
+        "date": "2026-05-12",
+        "updatedAt": "2026-05-12"
+      },
+      {
+        "id": "f338ad48-e8da-465e-8a4d-d386701f42ee",
+        "customerId": "2d78dbc6-c866-4b1a-b8af-fc3e83908132",
+        "customerName": "Masabata",
+        "phone": "0719575471",
+        "plate": "ABC 321 NW",
+        "serviceId": "full-wash-hatchsedan",
+        "serviceName": "HATCH/SEDAN",
+        "category": "FULL WASHES",
+        "price": 100,
+        "note": "",
+        "status": "cancelled",
+        "queueNumber": "5",
+        "date": "2026-05-12",
+        "updatedAt": "2026-05-12"
+      },
+      {
+        "id": "09f3df88-d107-4072-aca7-91c651f14fbd",
+        "customerId": "ff1850f6-8f58-4087-822f-dca6316d299e",
+        "customerName": "Sibusiso Innocent Macondzo",
+        "phone": "+27671274347",
+        "plate": "LFD 197 NW",
+        "serviceId": "full-wash-hatchsedan",
+        "serviceName": "HATCH/SEDAN",
+        "category": "FULL WASHES",
+        "price": 100,
+        "note": "14H00",
+        "status": "completed",
+        "queueNumber": "Number 5",
+        "date": "2026-05-12",
+        "updatedAt": "2026-05-12"
+      }
+    ],
+    "menuProducts": [
+      {
+        "id": "taxi-minibus-2",
+        "name": "TAXI / MINIBUS",
+        "description": "",
+        "price": 80,
+        "category": "WASH & GO",
+        "sku": "T/M003",
+        "vatEnabled": false
+      },
+      {
+        "id": "suv-double-cab-3",
+        "name": "SUV / DOUBLE CAB",
+        "description": "",
+        "price": 65,
+        "category": "WASH & GO",
+        "sku": "S/DC004",
+        "vatEnabled": false
+      },
+      {
+        "id": "sedan-hatch-1",
+        "name": "SEDAN / HATCH",
+        "description": "",
+        "price": 55,
+        "category": "WASH & GO",
+        "sku": "S/H002",
+        "vatEnabled": false
+      },
+      {
+        "id": "taxi-minibus-1",
+        "name": "TAXI / MINIVAN",
+        "description": "",
+        "price": 120,
+        "category": "OUTSIDE ONLY",
+        "sku": "T/M002",
+        "vatEnabled": false
+      },
+      {
+        "id": "suv-double-cab-2",
+        "name": "SUV / DOUBLE CAB",
+        "description": "",
+        "price": 85,
+        "category": "OUTSIDE ONLY",
+        "sku": "S/DC003",
+        "vatEnabled": false
+      },
+      {
+        "id": "sedan-hatch",
+        "name": "SEDAN / HATCH",
+        "description": "",
+        "price": 75,
+        "category": "OUTSIDE ONLY",
+        "sku": "S/H001",
+        "vatEnabled": false
+      },
+      {
+        "id": "taxi-minibus",
+        "name": "TAXI / MINIVAN",
+        "description": "",
+        "price": 80,
+        "category": "INSIDE ONLY",
+        "sku": "T/M001",
+        "vatEnabled": false
+      },
+      {
+        "id": "suv-double-cab-1",
+        "name": "SUV / DOUBLE CAB",
+        "description": "",
+        "price": 65,
+        "category": "INSIDE ONLY",
+        "sku": "S/DC002",
+        "vatEnabled": false
+      },
+      {
+        "id": "hatch-sedan",
+        "name": "HATCH / SEDAN",
+        "description": "",
+        "price": 55,
+        "category": "INSIDE ONLY",
+        "sku": "H/S001",
+        "vatEnabled": false
+      },
+      {
+        "id": "minibus-taxi",
+        "name": "TAXI / MINIVAN",
+        "description": "",
+        "price": 160,
+        "category": "FULL WASHES",
+        "sku": "M/T001",
+        "vatEnabled": false
+      },
+      {
+        "id": "suv-double-cab",
+        "name": "SUV / DOUBLE CAB",
+        "description": "",
+        "price": 120,
+        "category": "FULL WASHES",
+        "sku": "S/DC001",
+        "vatEnabled": true
+      },
+      {
+        "id": "full-wash-hatchsedan",
+        "name": "HATCH/SEDAN",
+        "description": "",
+        "price": 100,
+        "category": "FULL WASHES",
+        "sku": "FWH001",
+        "vatEnabled": true
+      }
+    ],
+    "notice": {
+      "active": true,
+      "type": "Open",
+      "message": "WE ARE OPEN AND FULLY OPERATIONAL",
+      "expiresOn": "2026-05-13",
+      "updatedAt": "2026-05-13"
+    }
+  }
+}

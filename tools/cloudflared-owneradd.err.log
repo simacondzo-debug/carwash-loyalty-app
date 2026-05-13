@@ -1,0 +1,105 @@
+2026-05-13T07:48:38Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2026-05-13T07:48:38Z INF Requesting new quick Tunnel on trycloudflare.com...
+2026-05-13T07:48:44Z INF +--------------------------------------------------------------------------------------------+
+2026-05-13T07:48:44Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+2026-05-13T07:48:44Z INF |  https://acid-reload-blacks-scuba.trycloudflare.com                                        |
+2026-05-13T07:48:44Z INF +--------------------------------------------------------------------------------------------+
+2026-05-13T07:48:44Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp]
+2026-05-13T07:48:44Z INF Version 2026.3.0 (Checksum 59b12880b24af581cf5b1013db601c7d843b9b097e9c78aa5957c7f39f741885)
+2026-05-13T07:48:44Z INF GOOS: windows, GOVersion: go1.24.13, GoArch: amd64
+2026-05-13T07:48:44Z INF Settings: map[ha-connections:1 p:http2 protocol:http2 url:http://127.0.0.1:4173]
+2026-05-13T07:48:44Z INF cloudflared will not automatically update on Windows systems.
+2026-05-13T07:48:44Z INF Generated Connector ID: d6f9c452-c3f4-459d-87d7-e624b43dc4f5
+2026-05-13T07:48:44Z INF Initial protocol http2
+2026-05-13T07:48:44Z INF ICMP proxy will use 192.168.0.228 as source for IPv4
+2026-05-13T07:48:44Z INF ICMP proxy will use fd96:91d7:b16c::685 in zone WiFi as source for IPv6
+2026-05-13T07:48:44Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2026-05-13T07:48:44Z INF ICMP proxy will use 192.168.0.228 as source for IPv4
+2026-05-13T07:48:44Z INF ICMP proxy will use fd96:91d7:b16c::685 in zone WiFi as source for IPv6
+2026-05-13T07:48:44Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-05-13T07:48:45Z INF Registered tunnel connection connIndex=0 connection=b9cfee8e-1324-4efd-9363-4b3d01b965dd event=0 ip=198.41.192.227 location=jnb03 protocol=http2
+2026-05-13T07:53:48Z INF Lost connection with the edge connIndex=0
+2026-05-13T07:53:48Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T07:53:48Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T07:53:48Z ERR failed to serve incoming request error="Error shutting down control stream: context canceled"
+2026-05-13T07:53:50Z ERR Connection terminated error="connection with edge closed" connIndex=0
+2026-05-13T07:53:51Z INF Registered tunnel connection connIndex=0 connection=0165a9c9-7170-4986-b17e-f31bcea8d791 event=0 ip=198.41.192.227 location=jnb03 protocol=http2
+2026-05-13T07:56:49Z ERR failed to serve incoming request error="Error shutting down control stream: context canceled"
+2026-05-13T07:56:49Z ERR Serve tunnel error error="Error shutting down control stream: context canceled" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T07:56:49Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T07:56:49Z ERR Connection terminated error="Error shutting down control stream: context canceled" connIndex=0
+2026-05-13T07:57:02Z INF Registered tunnel connection connIndex=0 connection=1834690e-e182-4444-8db9-7cce6293d3a2 event=0 ip=198.41.192.227 location=jnb03 protocol=http2
+2026-05-13T08:31:24Z INF Lost connection with the edge connIndex=0
+2026-05-13T08:31:24Z ERR failed to serve incoming request error="Error shutting down control stream: client disconnected"
+2026-05-13T08:31:24Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:31:24Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:31:25Z ERR Connection terminated error="connection with edge closed" connIndex=0
+2026-05-13T08:31:31Z INF Registered tunnel connection connIndex=0 connection=b8346713-f665-40be-8bf0-a036b8300ef7 event=0 ip=198.41.192.227 location=jnb03 protocol=http2
+2026-05-13T08:33:22Z INF Lost connection with the edge connIndex=0
+2026-05-13T08:33:22Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:33:22Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:33:22Z ERR failed to serve incoming request error="Error shutting down control stream: client disconnected"
+2026-05-13T08:33:23Z ERR Connection terminated error="connection with edge closed" connIndex=0
+2026-05-13T08:33:28Z INF Registered tunnel connection connIndex=0 connection=263f56af-2473-4dc2-be85-4f9c0cdd67fe event=0 ip=198.41.192.227 location=jnb03 protocol=http2
+2026-05-13T08:53:35Z INF Lost connection with the edge connIndex=0
+2026-05-13T08:53:35Z ERR Serve tunnel error error="connection with edge closed" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:53:35Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:53:35Z ERR failed to serve incoming request error="Error shutting down control stream: client disconnected"
+2026-05-13T08:53:37Z ERR Connection terminated error="connection with edge closed" connIndex=0
+2026-05-13T08:53:48Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T08:53:48Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:53:48Z INF Retrying connection in up to 4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:53:50Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T08:54:01Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T08:54:01Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:54:01Z INF Retrying connection in up to 8s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T08:54:04Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T09:03:57Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T09:03:57Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T09:03:57Z INF Retrying connection in up to 16s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T09:04:00Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T09:04:48Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T09:04:48Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T09:04:48Z INF Retrying connection in up to 32s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T09:05:19Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:15:46Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:15:46Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:15:46Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:15:46Z ERR Failed to refresh DNS local resolver error="lookup region1.v2.argotunnel.com: i/o timeout"
+2026-05-13T11:15:51Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:20:37Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:20:37Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:20:37Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:21:03Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:23:27Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:23:27Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:23:27Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:23:57Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:23:58Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:23:58Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:23:58Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:24:03Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:25:49Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:25:49Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:25:49Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:26:04Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:31:01Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:31:01Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:31:01Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:31:32Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:36:43Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:36:43Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:36:43Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:36:46Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:39:34Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:39:34Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:39:34Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:39:57Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:43:46Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:43:46Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:43:46Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:44:02Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
+2026-05-13T11:48:48Z ERR failed to serve incoming request error="Unauthorized: Tunnel not found"
+2026-05-13T11:48:48Z ERR Register tunnel error from server side error="Unauthorized: Tunnel not found" connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:48:48Z INF Retrying connection in up to 1m4s connIndex=0 event=0 ip=198.41.192.227
+2026-05-13T11:49:10Z ERR Connection terminated error="Unauthorized: Tunnel not found" connIndex=0
