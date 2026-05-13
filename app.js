@@ -9,22 +9,7 @@ const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=menufallback2";
-const FALLBACK_MENU_PRODUCTS = [
-  { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
-  { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
-  { id: "sedan-hatch-1", name: "SEDAN / HATCH", description: "", price: 55, category: "WASH & GO", sku: "S/H002", vatEnabled: true },
-  { id: "taxi-minibus-1", name: "TAXI / MINIVAN", description: "", price: 120, category: "OUTSIDE ONLY", sku: "T/M002", vatEnabled: true },
-  { id: "suv-double-cab-2", name: "SUV / DOUBLE CAB", description: "", price: 85, category: "OUTSIDE ONLY", sku: "S/DC003", vatEnabled: true },
-  { id: "sedan-hatch", name: "SEDAN / HATCH", description: "", price: 75, category: "OUTSIDE ONLY", sku: "S/H001", vatEnabled: true },
-  { id: "taxi-minibus", name: "TAXI / MINIVAN", description: "", price: 80, category: "INSIDE ONLY", sku: "T/M001", vatEnabled: true },
-  { id: "suv-double-cab-1", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "INSIDE ONLY", sku: "S/DC002", vatEnabled: true },
-  { id: "hatch-sedan", name: "HATCH / SEDAN", description: "", price: 55, category: "INSIDE ONLY", sku: "H/S001", vatEnabled: true },
-  { id: "aurum", name: "AURUM", description: "LOCAL ACCOUNT", price: 100, category: "FULL WASHES", sku: "AUR001", vatEnabled: true },
-  { id: "minibus-taxi", name: "TAXI / MINIVAN", description: "", price: 160, category: "FULL WASHES", sku: "M/T001", vatEnabled: true },
-  { id: "suv-double-cab", name: "SUV / DOUBLE CAB", description: "", price: 120, category: "FULL WASHES", sku: "S/DC001", vatEnabled: true },
-  { id: "full-wash-hatchsedan", name: "HATCH/SEDAN", description: "", price: 100, category: "FULL WASHES", sku: "FWH001", vatEnabled: true },
-];
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerselect1";
 
 const emptyState = {
   customers: [],
@@ -492,15 +477,12 @@ async function loadMenu() {
     if (!response.ok) throw new Error("Menu CSV could not be loaded.");
     const rows = parseProductCsv(await response.text());
     menuItems = rows.map(normalizeMenuItem).filter((item) => item.name && item.category);
-    if (!menuItems.length) throw new Error("Menu CSV did not contain products.");
     state.menuProducts = menuItems;
     menuStatus = "ready";
     saveState();
   } catch {
-    menuItems = FALLBACK_MENU_PRODUCTS.map(normalizeMenuItem);
-    state.menuProducts = menuItems;
-    menuStatus = "ready";
-    saveState();
+    menuStatus = "error";
+    menuItems = [];
   }
 
   render();
@@ -988,7 +970,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "menufallback2");
+  url.searchParams.set("v", "ownerselect1");
   return url.href;
 }
 
@@ -2895,7 +2877,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=menufallback2");
+    navigator.serviceWorker.register("sw.js?v=ownerselect1");
   });
 }
 
