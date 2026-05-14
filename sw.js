@@ -1,10 +1,10 @@
-const CACHE_NAME = "the-carwash-at-shell-pwa-v38";
+const CACHE_NAME = "the-carwash-at-shell-pwa-v40";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=ownerpopups1",
-  "./app.js?v=ownerpopups1",
-  "./manifest.webmanifest?v=ownerpopups1",
+  "./styles.css?v=drawrule1",
+  "./app.js?v=drawrule1",
+  "./manifest.webmanifest?v=drawrule1",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
 ];

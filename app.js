@@ -11,7 +11,7 @@ const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerpopups1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=drawrule1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -88,7 +88,6 @@ const elements = {
   customerCode: document.querySelector("#customerCode"),
   customerCodeName: document.querySelector("#customerCodeName"),
   customerForm: document.querySelector("#customerForm"),
-  customerFacebookFollowed: document.querySelector("#customerFacebookFollowed"),
   customerList: document.querySelector("#customerList"),
   customerModeButton: document.querySelector("#customerModeButton"),
   customerName: document.querySelector("#customerName"),
@@ -119,7 +118,9 @@ const elements = {
   manageAlert: document.querySelector("#manageAlert"),
   manageCustomerName: document.querySelector("#manageCustomerName"),
   manageCustomerPhone: document.querySelector("#manageCustomerPhone"),
-  manageFacebookFollowed: document.querySelector("#manageFacebookFollowed"),
+  manageCustomerSearch: document.querySelector("#manageCustomerSearch"),
+  manageCustomerSearchButton: document.querySelector("#manageCustomerSearchButton"),
+  manageCustomerSelected: document.querySelector("#manageCustomerSelected"),
   manageNewVehicle: document.querySelector("#manageNewVehicle"),
   manageWhatsappOptIn: document.querySelector("#manageWhatsappOptIn"),
   manageVehicleSelect: document.querySelector("#manageVehicleSelect"),
@@ -151,7 +152,6 @@ const elements = {
   ownerAddCustomerName: document.querySelector("#ownerAddCustomerName"),
   ownerAddCustomerPhone: document.querySelector("#ownerAddCustomerPhone"),
   ownerAddCustomerPlate: document.querySelector("#ownerAddCustomerPlate"),
-  ownerAddFacebookFollowed: document.querySelector("#ownerAddFacebookFollowed"),
   ownerAddWhatsappOptIn: document.querySelector("#ownerAddWhatsappOptIn"),
   ownerAlert: document.querySelector("#ownerAlert"),
   ownerAlertCloseButton: document.querySelector("#ownerAlertCloseButton"),
@@ -740,20 +740,16 @@ function recentPaidWashes(customer) {
 
 function drawEligibility(customer) {
   const recentWashes = recentPaidWashes(customer);
-  const follows = Boolean(customer.facebookFollowed);
-  const eligible = follows && recentWashes >= REQUIRED_DRAW_WASHES;
+  const eligible = recentWashes >= REQUIRED_DRAW_WASHES;
   const washesNeeded = Math.max(0, REQUIRED_DRAW_WASHES - recentWashes);
 
   return {
     eligible,
-    follows,
     recentWashes,
     washesNeeded,
     message: eligible
       ? `Entered for the monthly draw to win ${DRAW_PRIZE}.`
-      : follows
-        ? `${washesNeeded} more verified wash${washesNeeded === 1 ? "" : "es"} needed in 2 months.`
-        : "Follow our Facebook page to enter the lucky draw.",
+      : `${washesNeeded} more verified wash${washesNeeded === 1 ? "" : "es"} needed in 2 months.`,
   };
 }
 
@@ -793,34 +789,72 @@ function customerSearchText(customer) {
     .toLowerCase();
 }
 
-function searchOwnerCustomer() {
-  const query = elements.ownerCustomerSearch.value.trim().toLowerCase();
-  if (!query) {
-    setOwnerAlert("Enter a customer name, phone, code, or plate to search.");
-    return false;
-  }
+function findOwnerCustomerSearchMatch(query) {
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+  if (!normalizedQuery) return null;
 
-  const match = [...state.customers]
+  const customer = [...state.customers]
     .sort((a, b) => a.name.localeCompare(b.name))
-    .find((customer) => customerSearchText(customer).includes(query));
+    .find((item) => customerSearchText(item).includes(normalizedQuery));
 
-  if (!match) {
-    setOwnerAlert("No customer found for that search.");
-    return false;
-  }
+  if (!customer) return null;
 
-  const matchingVehicle = normalizeVehicleList(match.vehicles, match.plate).find((plate) =>
-    plate.toLowerCase().includes(query),
-  );
+  return {
+    customer,
+    matchingVehicle: normalizeVehicleList(customer.vehicles, customer.plate).find((plate) =>
+      plate.toLowerCase().includes(normalizedQuery),
+    ),
+  };
+}
 
-  elements.ownerCustomerSelect.value = match.id;
+function selectOwnerCustomer(customer, matchingVehicle = "") {
+  elements.ownerCustomerSelect.value = customer.id;
   renderOwnerVehicleOptions();
   if (matchingVehicle) {
     elements.ownerVehicleSelect.value = matchingVehicle;
   }
   renderOwnerManagement();
   updateRedeemButtonState();
-  setOwnerAlert(`${match.name} selected for verification.`);
+}
+
+function searchOwnerCustomer() {
+  const query = elements.ownerCustomerSearch.value.trim();
+  if (!query) {
+    setOwnerAlert("Enter a customer name, phone, code, or plate to search.");
+    return false;
+  }
+
+  const match = findOwnerCustomerSearchMatch(query);
+
+  if (!match) {
+    setOwnerAlert("No customer found for that search.");
+    return false;
+  }
+
+  selectOwnerCustomer(match.customer, match.matchingVehicle);
+  elements.manageCustomerSearch.value = query;
+  setOwnerAlert(`${match.customer.name} selected for verification.`);
+  setManageAlert(`${match.customer.name} selected. You can edit their details in Manage customer.`);
+  return true;
+}
+
+function searchManageCustomer() {
+  const query = elements.manageCustomerSearch.value.trim();
+  if (!query) {
+    setManageAlert("Enter a customer name, phone, code, or plate to search.");
+    return false;
+  }
+
+  const match = findOwnerCustomerSearchMatch(query);
+
+  if (!match) {
+    setManageAlert("No customer found for that search.");
+    return false;
+  }
+
+  selectOwnerCustomer(match.customer, match.matchingVehicle);
+  elements.ownerCustomerSearch.value = query;
+  setManageAlert(`${match.customer.name} selected. You can update, remove, or revoke a wash.`);
   return true;
 }
 
@@ -1028,7 +1062,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "ownerpopups1");
+  url.searchParams.set("v", "drawrule1");
   return url.href;
 }
 
@@ -1262,7 +1296,7 @@ function addOwnerCustomer(event) {
     stampBalance: 0,
     lifetimePaidWashes: 0,
     freeWashesRedeemed: 0,
-    facebookFollowed: elements.ownerAddFacebookFollowed.checked,
+    facebookFollowed: false,
     whatsappOptIn: Boolean(normalizedPhone && elements.ownerAddWhatsappOptIn.checked),
     lastWash: today(),
     joined: today(),
@@ -1682,11 +1716,6 @@ function renderCustomerCard() {
       <div class="draw-status ${draw.eligible ? "draw-eligible" : ""}">
         <strong>Lucky draw entry</strong>
         <span>${escapeHtml(draw.message)}</span>
-        ${
-          draw.follows
-            ? ""
-            : '<button class="ghost-button full-width" data-follow-facebook type="button">I follow the Facebook page</button>'
-        }
       </div>
     </article>
   `;
@@ -1761,7 +1790,6 @@ function renderOwnerManagement() {
   [
     elements.manageCustomerName,
     elements.manageCustomerPhone,
-    elements.manageFacebookFollowed,
     elements.manageNewVehicle,
     elements.manageWhatsappOptIn,
     elements.manageVehicleSelect,
@@ -1777,9 +1805,10 @@ function renderOwnerManagement() {
   if (!customer) {
     elements.manageCustomerName.value = "";
     elements.manageCustomerPhone.value = "";
-    elements.manageFacebookFollowed.checked = false;
     elements.manageWhatsappOptIn.checked = false;
     elements.manageNewVehicle.value = "";
+    elements.manageCustomerSelected.textContent =
+      "Search and select a customer before editing their details.";
     const option = document.createElement("option");
     option.value = "";
     option.textContent = "No customer selected";
@@ -1789,8 +1818,8 @@ function renderOwnerManagement() {
 
   elements.manageCustomerName.value = customer.name;
   elements.manageCustomerPhone.value = customer.phone;
-  elements.manageFacebookFollowed.checked = Boolean(customer.facebookFollowed);
   elements.manageWhatsappOptIn.checked = Boolean(customer.whatsappOptIn);
+  elements.manageCustomerSelected.textContent = `${customer.name} - ${customerCode(customer)} - ${vehicleLabel(customer)}`;
 
   const vehicles = normalizeVehicleList(customer.vehicles, customer.plate);
   if (!vehicles.length) {
@@ -1861,7 +1890,6 @@ function renderCustomerList() {
         <span>${formatNumber(customer.lifetimePaidWashes)} paid washes</span>
         <span>${formatNumber(customer.freeWashesRedeemed)} free redeemed</span>
         <span>${draw.recentWashes}/${REQUIRED_DRAW_WASHES} recent washes</span>
-        <span>Facebook: ${draw.follows ? "following" : "not confirmed"}</span>
         <span>WhatsApp: ${customer.whatsappOptIn ? "approved" : "not approved"}</span>
         <span>Draw: ${draw.eligible ? "eligible" : "not eligible"}</span>
         <span>Last wash ${customer.lastWash}</span>
@@ -1981,13 +2009,13 @@ function renderStampCard(stampBalance) {
 function renderLuckyDraw() {
   const entries = eligibleDrawCustomers();
   const winner = currentMonthDraw();
-  elements.drawSummary.textContent = `${entries.length} eligible entr${entries.length === 1 ? "y" : "ies"} this month. Customers need 5+ verified paid washes in 2 months and must follow Facebook.`;
+  elements.drawSummary.textContent = `${entries.length} eligible entr${entries.length === 1 ? "y" : "ies"} this month. Customers need 5+ verified paid washes in 2 months.`;
   elements.luckyDrawList.innerHTML = "";
 
   if (!entries.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.innerHTML = "<strong>No lucky draw entries yet</strong><span>Verify more washes or confirm Facebook follows.</span>";
+    empty.innerHTML = "<strong>No lucky draw entries yet</strong><span>Verify more washes to qualify customers.</span>";
     elements.luckyDrawList.append(empty);
   } else {
     for (const customer of entries) {
@@ -2285,7 +2313,6 @@ function updateCustomerFromOwner(customer) {
   customer.name = name;
   customer.phone = phone;
   customer.manualCode = normalizedPhone ? "" : customer.manualCode || nextManualCustomerCode();
-  customer.facebookFollowed = elements.manageFacebookFollowed.checked;
   customer.whatsappOptIn = Boolean(normalizedPhone && elements.manageWhatsappOptIn.checked);
   if (newVehicle) addVehicleToCustomer(customer, newVehicle);
 
@@ -2913,7 +2940,7 @@ elements.customerForm.addEventListener("submit", (event) => {
       stampBalance: 0,
       lifetimePaidWashes: 0,
       freeWashesRedeemed: 0,
-      facebookFollowed: elements.customerFacebookFollowed.checked,
+      facebookFollowed: false,
       whatsappOptIn: elements.customerWhatsappOptIn.checked,
       lastWash: today(),
       joined: today(),
@@ -2922,24 +2949,11 @@ elements.customerForm.addEventListener("submit", (event) => {
   } else {
     customer.name = elements.customerName.value.trim() || customer.name;
     addVehicleToCustomer(customer, elements.customerPlate.value);
-    customer.facebookFollowed =
-      customer.facebookFollowed || elements.customerFacebookFollowed.checked;
     customer.whatsappOptIn = customer.whatsappOptIn || elements.customerWhatsappOptIn.checked;
   }
 
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   elements.customerForm.reset();
-  render();
-});
-
-elements.customerCardDisplay.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-follow-facebook]");
-  if (!button) return;
-
-  const customer = activeCustomer();
-  if (!customer) return;
-
-  customer.facebookFollowed = true;
   render();
 });
 
@@ -3010,10 +3024,26 @@ elements.ownerCustomerSearch.addEventListener("keydown", (event) => {
   searchOwnerCustomer();
 });
 
+elements.manageCustomerSearchButton.addEventListener("click", searchManageCustomer);
+
+elements.manageCustomerSearch.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  searchManageCustomer();
+});
+
 elements.ownerManageForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const customer = selectedOwnerCustomer();
-  if (!customer || !ownerUnlocked) return;
+  if (!ownerUnlocked) return;
+  if (!customer && elements.manageCustomerSearch.value.trim()) {
+    searchManageCustomer();
+    return;
+  }
+  if (!customer) {
+    setManageAlert("Search and select a customer before updating details.");
+    return;
+  }
 
   if (updateCustomerFromOwner(customer)) {
     render();
@@ -3072,7 +3102,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=ownerpopups1");
+    navigator.serviceWorker.register("sw.js?v=drawrule1");
   });
 }
 

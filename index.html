@@ -8,10 +8,10 @@
     <meta name="apple-mobile-web-app-title" content="Carwash @ Shell" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH @ SHELL</title>
-    <link rel="manifest" href="manifest.webmanifest?v=ownerpopups1" />
+    <link rel="manifest" href="manifest.webmanifest?v=drawrule1" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="icon" href="icons/icon-192.png" />
-    <link rel="stylesheet" href="styles.css?v=ownerpopups1" />
+    <link rel="stylesheet" href="styles.css?v=drawrule1" />
   </head>
   <body>
     <div class="phone-app">
@@ -117,10 +117,6 @@
                 </label>
               </div>
               <label class="checkbox-row">
-                <input id="customerFacebookFollowed" type="checkbox" />
-                <span>I follow THE CARWASH @ SHELL on Facebook</span>
-              </label>
-              <label class="checkbox-row">
                 <input id="customerWhatsappOptIn" type="checkbox" />
                 <span>I agree to receive WhatsApp alerts about free washes and competitions</span>
               </label>
@@ -182,7 +178,7 @@
             </div>
             <div class="menu-highlight menu-highlight-alt">
               <strong>5 washes in 2 months</strong>
-              <span>Lucky draw entry with Facebook follow</span>
+              <span>Lucky draw entry</span>
             </div>
             <p class="muted-line">
               Prices are shown from the current carwash menu. Final category is confirmed at the wash bay.
@@ -510,10 +506,6 @@
                 <input id="ownerAddCustomerPlate" type="text" placeholder="ABC 123 GP" />
               </label>
               <label class="checkbox-row">
-                <input id="ownerAddFacebookFollowed" type="checkbox" />
-                <span>Facebook follow confirmed</span>
-              </label>
-              <label class="checkbox-row">
                 <input id="ownerAddWhatsappOptIn" type="checkbox" />
                 <span>WhatsApp alerts approved by customer</span>
               </label>
@@ -543,6 +535,18 @@
             </div>
 
             <form class="stacked-form" id="ownerManageForm">
+              <div class="search-row">
+                <label>
+                  Search customer
+                  <input id="manageCustomerSearch" type="search" placeholder="Name, phone, code, or plate" />
+                </label>
+                <button class="ghost-button" id="manageCustomerSearchButton" type="button">
+                  Search
+                </button>
+              </div>
+              <p class="muted-line" id="manageCustomerSelected">
+                Search and select a customer before editing their details.
+              </p>
               <div class="split-fields">
                 <label>
                   Customer name
@@ -553,10 +557,6 @@
                   <input id="manageCustomerPhone" type="tel" placeholder="Optional" />
                 </label>
               </div>
-              <label class="checkbox-row">
-                <input id="manageFacebookFollowed" type="checkbox" />
-                <span>Facebook follow confirmed</span>
-              </label>
               <label class="checkbox-row">
                 <input id="manageWhatsappOptIn" type="checkbox" />
                 <span>WhatsApp alerts approved</span>
@@ -798,6 +798,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=ownerpopups1"></script>
+    <script src="app.js?v=drawrule1"></script>
   </body>
 </html>
