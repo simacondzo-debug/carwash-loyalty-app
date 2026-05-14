@@ -11,7 +11,7 @@ const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=drawrule1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=bookingread1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -621,7 +621,7 @@ function replyKey(item) {
 }
 
 function bookingAlertKey(booking) {
-  return `${booking.id}:${booking.status}:${booking.queueNumber || ""}:${booking.updatedAt || ""}`;
+  return `${booking.id}:${booking.status}:${booking.queueNumber || ""}`;
 }
 
 function ownerBookingAlertKey(booking) {
@@ -1062,7 +1062,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "drawrule1");
+  url.searchParams.set("v", "bookingread1");
   return url.href;
 }
 
@@ -1210,6 +1210,7 @@ function renderBookingConfirmationPopup() {
   if (!booking) return;
 
   pendingBookingAlert = booking;
+  markBookingAlertSeen(booking);
   if (booking.status === "completed") {
     elements.bookingAlertModalTitle.textContent = "Your wash is complete";
     elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been marked complete. Thank you for visiting THE CARWASH @ SHELL.`;
@@ -3102,7 +3103,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=drawrule1");
+    navigator.serviceWorker.register("sw.js?v=bookingread1");
   });
 }
 
