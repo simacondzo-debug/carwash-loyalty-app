@@ -658,6 +658,61 @@ textarea {
   font-size: 0.88rem;
 }
 
+.wash-history {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.wash-history > strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 950;
+}
+
+.wash-history p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.wash-history ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wash-history li {
+  display: grid;
+  grid-template-columns: minmax(76px, auto) minmax(0, 1fr);
+  gap: 3px 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.wash-history li span {
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.wash-history li strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.wash-history li small {
+  grid-column: 2;
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .draw-status,
 .prize-strip,
 .vehicle-manager {
@@ -747,6 +802,12 @@ textarea {
   font-size: clamp(1.5rem, 4vw, 2.25rem);
   font-weight: 950;
   line-height: 1.1;
+}
+
+.privacy-story {
+  background:
+    linear-gradient(135deg, rgba(255, 250, 240, 0.94), rgba(238, 248, 249, 0.94)),
+    linear-gradient(180deg, #ffffff, #f7fbfc);
 }
 
 .info-list {

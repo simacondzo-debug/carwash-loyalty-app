@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=fairdraw1" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=fairdraw1" />
-    <link rel="icon" href="icons/icon-192.png?v=fairdraw1" />
-    <link rel="stylesheet" href="styles.css?v=fairdraw1" />
+    <link rel="manifest" href="manifest.webmanifest?v=proloyalty1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=proloyalty1" />
+    <link rel="icon" href="icons/icon-192.png?v=proloyalty1" />
+    <link rel="stylesheet" href="styles.css?v=proloyalty1" />
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=fairdraw1" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=proloyalty1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -61,6 +61,7 @@
           <button class="mode-tab" id="menuModeButton" type="button">Menu</button>
           <button class="mode-tab" id="bookModeButton" type="button">Book wash</button>
           <button class="mode-tab" id="didYouKnowModeButton" type="button">Did you know</button>
+          <button class="mode-tab" id="rulesModeButton" type="button">Rules</button>
           <button class="mode-tab" id="feedbackModeButton" type="button">Feedback</button>
           <button class="mode-tab" id="aboutModeButton" type="button">About us</button>
           <button class="mode-tab is-hidden" id="ownerModeButton" type="button" hidden>Owner verify</button>
@@ -287,6 +288,62 @@
                 <span>Step 4</span>
                 <strong>You drop our staff member back at THE CARWASH.</strong>
               </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="view-grid is-hidden" id="rulesView">
+          <section class="panel about-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Competition Rules</p>
+                <h2>Monthly lucky draw</h2>
+              </div>
+            </div>
+            <div class="info-list">
+              <div class="info-row">
+                <span>How to qualify</span>
+                <strong>Complete 5 paid washes within 2 months.</strong>
+              </div>
+              <div class="info-row">
+                <span>Prize</span>
+                <strong>1 free standard wash, valid for 30 days.</strong>
+              </div>
+              <div class="info-row">
+                <span>What counts</span>
+                <strong>Paid, owner-verified washes only.</strong>
+              </div>
+              <div class="info-row">
+                <span>What does not count</span>
+                <strong>Free washes, cancelled washes, and revoked washes do not qualify.</strong>
+              </div>
+              <div class="info-row">
+                <span>Winner</span>
+                <strong>1 winner is selected monthly from eligible customers.</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel about-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Privacy Note</p>
+                <h2>Your information</h2>
+              </div>
+            </div>
+            <div class="about-story privacy-story">
+              <p>
+                THE CARWASH uses your name, phone number, vehicle details, wash history,
+                bookings, and feedback only to run the loyalty card, confirm washes,
+                manage bookings, and reply to customer messages.
+              </p>
+              <p>
+                The customer database is only visible in the owner area after the owner
+                unlocks the device lock.
+              </p>
+              <p>
+                WhatsApp alerts are only sent when a customer has approved WhatsApp updates.
+              </p>
             </div>
           </section>
         </section>
@@ -756,6 +813,22 @@
             <div class="feedback-list" id="feedbackList"></div>
           </section>
 
+          <section class="panel is-hidden" id="ownerBackupPanel" data-owner-secure>
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Owner</p>
+                <h2>Backup database</h2>
+              </div>
+            </div>
+            <p class="muted-line">
+              Export a private backup of customers, washes, bookings, feedback, menu products, and draw records.
+            </p>
+            <button class="primary-action full-width" id="ownerBackupButton" type="button">
+              Export backup
+            </button>
+            <p class="form-alert" id="ownerBackupAlert" role="status"></p>
+          </section>
+
           <section class="panel is-hidden" data-owner-secure>
             <div class="panel-header">
               <div>
@@ -861,6 +934,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=fairdraw1"></script>
+    <script src="app.js?v=proloyalty1"></script>
   </body>
 </html>

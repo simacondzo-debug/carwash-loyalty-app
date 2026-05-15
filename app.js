@@ -12,7 +12,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=fairdraw1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=proloyalty1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -164,6 +164,9 @@ const elements = {
   ownerAlertModalMeta: document.querySelector("#ownerAlertModalMeta"),
   ownerAlertModalTitle: document.querySelector("#ownerAlertModalTitle"),
   ownerAlertViewButton: document.querySelector("#ownerAlertViewButton"),
+  ownerBackupAlert: document.querySelector("#ownerBackupAlert"),
+  ownerBackupButton: document.querySelector("#ownerBackupButton"),
+  ownerBackupPanel: document.querySelector("#ownerBackupPanel"),
   ownerBookingList: document.querySelector("#ownerBookingList"),
   ownerBookingSummary: document.querySelector("#ownerBookingSummary"),
   ownerBookingsPanel: document.querySelector("#ownerBookingsPanel"),
@@ -208,6 +211,8 @@ const elements = {
   removeVehicleButton: document.querySelector("#removeVehicleButton"),
   responseLookupForm: document.querySelector("#responseLookupForm"),
   responseLookupPhone: document.querySelector("#responseLookupPhone"),
+  rulesModeButton: document.querySelector("#rulesModeButton"),
+  rulesView: document.querySelector("#rulesView"),
   customerResponseList: document.querySelector("#customerResponseList"),
   replyModal: document.querySelector("#replyModal"),
   replyModalCloseButton: document.querySelector("#replyModalCloseButton"),
@@ -754,6 +759,57 @@ function recentPaidWashes(customer) {
   }).length;
 }
 
+function customerWashActivities(customer, limit = 6) {
+  if (!customer) return [];
+  return [...state.activities]
+    .filter((activity) => {
+      const sameCustomer =
+        activity.customerId === customer.id ||
+        (!activity.customerId && activity.customerName === customer.name);
+      const isWashRecord = ["paid", "free", "revoked"].includes(activity.type);
+      return sameCustomer && isWashRecord && !(activity.type === "paid" && activity.revoked);
+    })
+    .reverse()
+    .slice(0, limit);
+}
+
+function washHistoryLabel(activity) {
+  if (activity.type === "free") return "Free wash redeemed";
+  if (activity.type === "revoked") return "Wash revoked";
+  return "Paid wash verified";
+}
+
+function renderCustomerWashHistory(customer) {
+  const history = customerWashActivities(customer);
+  if (!history.length) {
+    return `
+      <div class="wash-history">
+        <strong>Wash history</strong>
+        <p>No washes verified yet.</p>
+      </div>
+    `;
+  }
+
+  const rows = history
+    .map(
+      (activity) => `
+        <li>
+          <span>${escapeHtml(displayDate(activity.date))}</span>
+          <strong>${escapeHtml(washHistoryLabel(activity))}</strong>
+          <small>${escapeHtml(activity.service || "Wash")} - ${escapeHtml(activity.plate || "No plate")}</small>
+        </li>
+      `,
+    )
+    .join("");
+
+  return `
+    <div class="wash-history">
+      <strong>Wash history</strong>
+      <ol>${rows}</ol>
+    </div>
+  `;
+}
+
 function drawEligibility(customer) {
   const recentWashes = recentPaidWashes(customer);
   const eligible = recentWashes >= REQUIRED_DRAW_WASHES;
@@ -1085,7 +1141,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "fairdraw1");
+  url.searchParams.set("v", "proloyalty1");
   return url.href;
 }
 
@@ -1655,6 +1711,39 @@ function setNoticeAlert(message) {
   elements.noticeAlert.classList.toggle("visible", Boolean(message));
 }
 
+function setOwnerBackupAlert(message) {
+  elements.ownerBackupAlert.textContent = message;
+  elements.ownerBackupAlert.classList.toggle("visible", Boolean(message));
+}
+
+function exportOwnerBackup() {
+  if (!ownerUnlocked) {
+    setOwnerBackupAlert("Unlock owner verification before exporting a backup.");
+    return false;
+  }
+
+  const payload = {
+    app: "THE CARWASH",
+    backupVersion: "proloyalty1",
+    exportedAt: new Date().toISOString(),
+    sharedStateVersion: sharedStateVersion || null,
+    state: migrateState(state),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json;charset=utf-8",
+  });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = `the-carwash-backup-${today()}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setOwnerBackupAlert("Backup exported.");
+  return true;
+}
+
 function publishCustomerNotice() {
   const message = elements.noticeMessageInput.value.trim();
   if (!message) {
@@ -1722,6 +1811,7 @@ function renderCustomerCard() {
         <span>${formatNumber(customer.freeWashesRedeemed)} free redeemed</span>
         <span>${draw.recentWashes}/${REQUIRED_DRAW_WASHES} recent washes for draw</span>
       </div>
+      ${renderCustomerWashHistory(customer)}
       <div class="vehicle-manager">
         <strong>My cars</strong>
         <div class="vehicle-list">
@@ -2760,6 +2850,7 @@ function setMode(mode) {
   const isMenu = mode === "menu";
   const isBook = mode === "book";
   const isDidYouKnow = mode === "didYouKnow";
+  const isRules = mode === "rules";
   const isAbout = mode === "about";
   const isFeedback = mode === "feedback";
   const isOwner = mode === "owner";
@@ -2767,6 +2858,7 @@ function setMode(mode) {
   elements.menuView.classList.toggle("is-hidden", !isMenu);
   elements.bookView.classList.toggle("is-hidden", !isBook);
   elements.didYouKnowView.classList.toggle("is-hidden", !isDidYouKnow);
+  elements.rulesView.classList.toggle("is-hidden", !isRules);
   elements.aboutView.classList.toggle("is-hidden", !isAbout);
   elements.feedbackView.classList.toggle("is-hidden", !isFeedback);
   elements.ownerView.classList.toggle("is-hidden", !isOwner);
@@ -2774,6 +2866,7 @@ function setMode(mode) {
   elements.menuModeButton.classList.toggle("active", isMenu);
   elements.bookModeButton.classList.toggle("active", isBook);
   elements.didYouKnowModeButton.classList.toggle("active", isDidYouKnow);
+  elements.rulesModeButton.classList.toggle("active", isRules);
   elements.aboutModeButton.classList.toggle("active", isAbout);
   elements.feedbackModeButton.classList.toggle("active", isFeedback);
   elements.ownerModeButton.classList.toggle("active", isOwner);
@@ -2858,6 +2951,7 @@ elements.customerModeButton.addEventListener("click", () => setMode("customer"))
 elements.menuModeButton.addEventListener("click", () => setMode("menu"));
 elements.bookModeButton.addEventListener("click", () => setMode("book"));
 elements.didYouKnowModeButton.addEventListener("click", () => setMode("didYouKnow"));
+elements.rulesModeButton.addEventListener("click", () => setMode("rules"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
 elements.feedbackModeButton.addEventListener("click", () => setMode("feedback"));
 elements.ownerModeButton.addEventListener("click", () => setMode("owner"));
@@ -2898,6 +2992,7 @@ elements.ownerProductSelect.addEventListener("change", renderOwnerMenuEditor);
 elements.ownerProductForm.addEventListener("submit", saveOwnerProduct);
 elements.ownerNewProductButton.addEventListener("click", createBlankProduct);
 elements.ownerRemoveProductButton.addEventListener("click", removeOwnerProduct);
+elements.ownerBackupButton.addEventListener("click", exportOwnerBackup);
 elements.feedbackForm.addEventListener("submit", submitFeedback);
 elements.ownerNoticeForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -3130,7 +3225,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=fairdraw1");
+    navigator.serviceWorker.register("sw.js?v=proloyalty1");
   });
 }
 
