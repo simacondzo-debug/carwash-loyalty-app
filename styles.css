@@ -253,6 +253,27 @@ main {
   font-weight: 750;
 }
 
+.offline-banner {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(195, 72, 72, 0.32);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff0f0, #fff8f5);
+  color: #7b2d2d;
+  margin: 18px 0;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.offline-banner strong {
+  color: #6f2222;
+  font-weight: 950;
+}
+
+.offline-banner span {
+  line-height: 1.45;
+}
+
 .mode-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
@@ -266,7 +287,7 @@ main {
 }
 
 .mode-tab {
-  min-height: 46px;
+  min-height: 50px;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -413,7 +434,7 @@ input,
 select,
 textarea {
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-strong);
@@ -453,7 +474,7 @@ textarea {
 .danger-action,
 .ghost-button {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   justify-content: center;
   border: 0;
@@ -518,6 +539,47 @@ textarea {
 .customer-card-display {
   display: grid;
   gap: 16px;
+}
+
+.welcome-card,
+.quick-guide,
+.help-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(8, 127, 140, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff, #f4fbfc);
+  padding: 14px;
+}
+
+.welcome-card {
+  margin-bottom: 14px;
+}
+
+.welcome-card strong,
+.quick-guide strong,
+.help-card strong {
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-weight: 950;
+}
+
+.welcome-card span,
+.quick-guide li {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.quick-guide,
+.help-card {
+  margin-top: 14px;
+}
+
+.quick-guide ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
 }
 
 .customer-code {
@@ -1473,6 +1535,17 @@ textarea {
   .mode-tabs {
     grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   }
+
+  .mode-tab,
+  .primary-action,
+  .success-action,
+  .warning-action,
+  .danger-action,
+  .ghost-button,
+  input,
+  select {
+    min-height: 52px;
+  }
 }
 
 @media (max-width: 620px) {
@@ -1502,7 +1575,8 @@ textarea {
   .digital-card-top,
   .customer-heading,
   .feedback-entry-header,
-  .notice-banner {
+  .notice-banner,
+  .offline-banner {
     align-items: stretch;
     flex-direction: column;
   }

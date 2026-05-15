@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=verifydate1" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=verifydate1" />
-    <link rel="icon" href="icons/icon-192.png?v=verifydate1" />
-    <link rel="stylesheet" href="styles.css?v=verifydate1" />
+    <link rel="manifest" href="manifest.webmanifest?v=finaltouch1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=finaltouch1" />
+    <link rel="icon" href="icons/icon-192.png?v=finaltouch1" />
+    <link rel="stylesheet" href="styles.css?v=finaltouch1" />
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=verifydate1" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=finaltouch1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -54,6 +54,11 @@
             <p id="noticeMessage"></p>
           </div>
           <small id="noticeMeta"></small>
+        </section>
+
+        <section class="offline-banner is-hidden" id="offlineBanner" aria-live="polite">
+          <strong>You are offline</strong>
+          <span>Some bookings, wash updates, and owner changes may appear when your connection returns.</span>
         </section>
 
         <section class="mode-tabs" aria-label="App mode">
@@ -103,6 +108,11 @@
               </div>
             </div>
 
+            <div class="welcome-card" id="customerWelcomeCard">
+              <strong>Welcome to THE CARWASH</strong>
+              <span>Add your name and phone number to start collecting verified washes.</span>
+            </div>
+
             <form class="stacked-form" id="customerForm">
               <label>
                 Name
@@ -126,6 +136,7 @@
             </form>
 
             <div class="customer-card-display" id="customerCardDisplay" hidden></div>
+            <p class="form-alert" id="customerAlert" role="status"></p>
           </section>
 
           <section class="panel">
@@ -138,6 +149,21 @@
             <div class="customer-code" id="customerCode">TCW-0000</div>
             <p class="muted-line" id="customerCodeName">Open a customer card to show this code.</p>
             <div class="customer-replies is-hidden" id="customerReplyPreview"></div>
+            <div class="quick-guide">
+              <strong>How it works</strong>
+              <ol>
+                <li>Wash 9 times and the 10th wash is free.</li>
+                <li>The owner verifies every paid wash.</li>
+                <li>5 paid washes in 2 months enters the monthly draw.</li>
+              </ol>
+            </div>
+            <div class="help-card">
+              <strong>Need help with your card?</strong>
+              <div class="contact-actions">
+                <a class="primary-action" href="tel:+27671274347">Call</a>
+                <a class="ghost-button" href="https://wa.me/27671274347?text=Hi%20THE%20CARWASH%2C%20I%20need%20help%20with%20my%20loyalty%20card.">WhatsApp</a>
+              </div>
+            </div>
           </section>
         </section>
 
@@ -938,6 +964,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=verifydate1"></script>
+    <script src="app.js?v=finaltouch1"></script>
   </body>
 </html>

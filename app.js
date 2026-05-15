@@ -12,7 +12,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=verifydate1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=finaltouch1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -86,6 +86,7 @@ const elements = {
   customerAppQr: document.querySelector("#customerAppQr"),
   customerAppQrLink: document.querySelector("#customerAppQrLink"),
   customerCardDisplay: document.querySelector("#customerCardDisplay"),
+  customerAlert: document.querySelector("#customerAlert"),
   customerCode: document.querySelector("#customerCode"),
   customerCodeName: document.querySelector("#customerCodeName"),
   customerForm: document.querySelector("#customerForm"),
@@ -96,6 +97,7 @@ const elements = {
   customerPlate: document.querySelector("#customerPlate"),
   customerReplyPreview: document.querySelector("#customerReplyPreview"),
   customerWhatsappOptIn: document.querySelector("#customerWhatsappOptIn"),
+  customerWelcomeCard: document.querySelector("#customerWelcomeCard"),
   customerView: document.querySelector("#customerView"),
   didYouKnowModeButton: document.querySelector("#didYouKnowModeButton"),
   didYouKnowView: document.querySelector("#didYouKnowView"),
@@ -164,6 +166,7 @@ const elements = {
   ownerAlertModalMeta: document.querySelector("#ownerAlertModalMeta"),
   ownerAlertModalTitle: document.querySelector("#ownerAlertModalTitle"),
   ownerAlertViewButton: document.querySelector("#ownerAlertViewButton"),
+  offlineBanner: document.querySelector("#offlineBanner"),
   ownerBackupAlert: document.querySelector("#ownerBackupAlert"),
   ownerBackupButton: document.querySelector("#ownerBackupButton"),
   ownerBackupPanel: document.querySelector("#ownerBackupPanel"),
@@ -945,6 +948,7 @@ function searchManageCustomer() {
 
 function render() {
   syncOwnerWashDate();
+  updateOfflineBanner();
   renderCustomerNotice();
   renderCustomerAppQr();
   renderMenu();
@@ -1131,9 +1135,19 @@ function menuItemById(id) {
   return menuItems.find((item) => item.id === id) || null;
 }
 
+function updateOfflineBanner() {
+  if (!elements.offlineBanner) return;
+  elements.offlineBanner.classList.toggle("is-hidden", navigator.onLine);
+}
+
 function setBookingAlert(message) {
   elements.bookingAlert.textContent = message;
   elements.bookingAlert.classList.toggle("visible", Boolean(message));
+}
+
+function setCustomerAlert(message) {
+  elements.customerAlert.textContent = message;
+  elements.customerAlert.classList.toggle("visible", Boolean(message));
 }
 
 function setOwnerAddCustomerAlert(message) {
@@ -1148,7 +1162,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "verifydate1");
+  url.searchParams.set("v", "finaltouch1");
   return url.href;
 }
 
@@ -1232,7 +1246,7 @@ function prefillBookingForm(productId = "") {
     elements.bookingPhone.value = customer.phone;
     elements.bookingPlate.value = primaryPlate(customer);
   }
-  setBookingAlert(productId ? "Service selected. Add your details and submit the booking." : "");
+  setBookingAlert(productId ? "Service selected. Add your details and send the booking request." : "");
 }
 
 function customerBookings(customer = activeCustomer()) {
@@ -1409,7 +1423,7 @@ function submitBooking(event) {
   const note = elements.bookingNote.value.trim();
 
   if (!item || !name || !phone) {
-    setBookingAlert("Choose a wash service and add your name and phone number.");
+    setBookingAlert("Please choose a wash service, then add your name and phone number.");
     return;
   }
 
@@ -1433,7 +1447,7 @@ function submitBooking(event) {
 
   state.bookings.unshift(booking);
   elements.bookingNote.value = "";
-  setBookingAlert("Booking sent to the owner. Watch here for your queue number.");
+  setBookingAlert("Booking sent. The owner will confirm your queue number in the app.");
   render();
 }
 
@@ -1745,7 +1759,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "verifydate1",
+    backupVersion: "finaltouch1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -1798,6 +1812,7 @@ function renderCustomerCard() {
   const hasCustomer = Boolean(customer);
   elements.customerForm.hidden = hasCustomer;
   elements.customerCardDisplay.hidden = !hasCustomer;
+  elements.customerWelcomeCard.hidden = hasCustomer;
 
   if (!customer) {
     elements.customerCode.textContent = "TCW-0000";
@@ -2962,7 +2977,7 @@ function submitFeedback(event) {
 
   setResponseLookupPhone(phone);
   elements.feedbackForm.reset();
-  setFeedbackAlert("Thank you. Your message has been saved for the owner.");
+  setFeedbackAlert("Thank you. Your message has been sent to the owner. Check back here for a reply.");
   renderFeedbackInbox();
   renderCustomerResponses();
   showFeedbackThanksPopup(feedbackItem);
@@ -2979,6 +2994,8 @@ elements.rulesModeButton.addEventListener("click", () => setMode("rules"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
 elements.feedbackModeButton.addEventListener("click", () => setMode("feedback"));
 elements.ownerModeButton.addEventListener("click", () => setMode("owner"));
+window.addEventListener("online", updateOfflineBanner);
+window.addEventListener("offline", updateOfflineBanner);
 elements.menuCategoryFilter.addEventListener("change", renderMenu);
 elements.menuSearch.addEventListener("input", renderMenu);
 elements.bookingForm.addEventListener("submit", submitBooking);
@@ -3076,6 +3093,7 @@ elements.customerForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const phone = elements.customerPhone.value.trim();
   let customer = findCustomerByPhone(phone);
+  const isNewCustomer = !customer;
 
   if (!customer) {
     customer = {
@@ -3101,6 +3119,11 @@ elements.customerForm.addEventListener("submit", (event) => {
 
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   elements.customerForm.reset();
+  setCustomerAlert(
+    isNewCustomer
+      ? "Your loyalty card is ready. Show your Customer ID at the counter after each wash."
+      : "Welcome back. Your loyalty card is open and ready to use.",
+  );
   render();
 });
 
@@ -3251,7 +3274,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=verifydate1");
+    navigator.serviceWorker.register("sw.js?v=finaltouch1");
   });
 }
 
