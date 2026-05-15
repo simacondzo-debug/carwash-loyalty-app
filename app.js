@@ -10,8 +10,9 @@ const STATE_API_URL = "api/state";
 const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
-const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=rebrand1";
+const DRAW_PRIZE = "1 free standard wash valid for 30 days";
+const OLD_DRAW_PRIZE = "1 free wash every month for a year";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=fairdraw1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -763,9 +764,15 @@ function drawEligibility(customer) {
     recentWashes,
     washesNeeded,
     message: eligible
-      ? `Entered for the monthly draw to win ${DRAW_PRIZE}.`
-      : `${washesNeeded} more verified wash${washesNeeded === 1 ? "" : "es"} needed in 2 months.`,
+      ? `Entered for the monthly draw. Prize: ${DRAW_PRIZE}.`
+      : `${washesNeeded} more verified paid wash${washesNeeded === 1 ? "" : "es"} needed in 2 months.`,
   };
+}
+
+function drawPrizeText(prize = DRAW_PRIZE) {
+  const normalizedPrize = String(prize || "").trim();
+  if (!normalizedPrize || normalizedPrize === OLD_DRAW_PRIZE) return DRAW_PRIZE;
+  return normalizedPrize;
 }
 
 function eligibleDrawCustomers() {
@@ -1078,7 +1085,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "rebrand1");
+  url.searchParams.set("v", "fairdraw1");
   return url.href;
 }
 
@@ -1927,7 +1934,7 @@ function freeWashMessage(customer) {
 }
 
 function competitionMessage(customer) {
-  return `Hi ${customer.name}, THE CARWASH says you are entered in our monthly competition to win 1 free wash every month for a year. Good luck!`;
+  return `Hi ${customer.name}, THE CARWASH says you are entered in our monthly competition. Prize: ${DRAW_PRIZE}. Good luck!`;
 }
 
 function verifiedWashMessage(customer, details = {}) {
@@ -2026,7 +2033,7 @@ function renderStampCard(stampBalance) {
 function renderLuckyDraw() {
   const entries = eligibleDrawCustomers();
   const winner = currentMonthDraw();
-  elements.drawSummary.textContent = `${entries.length} eligible entr${entries.length === 1 ? "y" : "ies"} this month. Customers need 5+ verified paid washes in 2 months.`;
+  elements.drawSummary.textContent = `${entries.length} eligible entr${entries.length === 1 ? "y" : "ies"} this month. Customers need 5+ verified paid washes in 2 months. Prize: ${DRAW_PRIZE}.`;
   elements.luckyDrawList.innerHTML = "";
 
   if (!entries.length) {
@@ -2048,7 +2055,7 @@ function renderLuckyDraw() {
 
   elements.runDrawButton.disabled = !ownerUnlocked || !entries.length || Boolean(winner);
   if (winner) {
-    elements.drawResult.textContent = `${winner.month} winner: ${winner.customerName} wins ${winner.prize}.`;
+    elements.drawResult.textContent = `${winner.month} winner: ${winner.customerName} wins ${drawPrizeText(winner.prize)}.`;
     elements.drawResult.classList.add("visible");
   } else {
     elements.drawResult.textContent = ownerUnlocked
@@ -3123,7 +3130,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=rebrand1");
+    navigator.serviceWorker.register("sw.js?v=fairdraw1");
   });
 }
 
