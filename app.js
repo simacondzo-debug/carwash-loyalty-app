@@ -11,7 +11,7 @@ const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=bookingread1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=didyouknow1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -96,6 +96,8 @@ const elements = {
   customerReplyPreview: document.querySelector("#customerReplyPreview"),
   customerWhatsappOptIn: document.querySelector("#customerWhatsappOptIn"),
   customerView: document.querySelector("#customerView"),
+  didYouKnowModeButton: document.querySelector("#didYouKnowModeButton"),
+  didYouKnowView: document.querySelector("#didYouKnowView"),
   installButton: document.querySelector("#installButton"),
   drawResult: document.querySelector("#drawResult"),
   drawSummary: document.querySelector("#drawSummary"),
@@ -1062,7 +1064,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "bookingread1");
+  url.searchParams.set("v", "didyouknow1");
   return url.href;
 }
 
@@ -2736,18 +2738,21 @@ function setMode(mode) {
   const isCustomer = mode === "customer";
   const isMenu = mode === "menu";
   const isBook = mode === "book";
+  const isDidYouKnow = mode === "didYouKnow";
   const isAbout = mode === "about";
   const isFeedback = mode === "feedback";
   const isOwner = mode === "owner";
   elements.customerView.classList.toggle("is-hidden", !isCustomer);
   elements.menuView.classList.toggle("is-hidden", !isMenu);
   elements.bookView.classList.toggle("is-hidden", !isBook);
+  elements.didYouKnowView.classList.toggle("is-hidden", !isDidYouKnow);
   elements.aboutView.classList.toggle("is-hidden", !isAbout);
   elements.feedbackView.classList.toggle("is-hidden", !isFeedback);
   elements.ownerView.classList.toggle("is-hidden", !isOwner);
   elements.customerModeButton.classList.toggle("active", isCustomer);
   elements.menuModeButton.classList.toggle("active", isMenu);
   elements.bookModeButton.classList.toggle("active", isBook);
+  elements.didYouKnowModeButton.classList.toggle("active", isDidYouKnow);
   elements.aboutModeButton.classList.toggle("active", isAbout);
   elements.feedbackModeButton.classList.toggle("active", isFeedback);
   elements.ownerModeButton.classList.toggle("active", isOwner);
@@ -2831,6 +2836,7 @@ setupOwnerAccordions();
 elements.customerModeButton.addEventListener("click", () => setMode("customer"));
 elements.menuModeButton.addEventListener("click", () => setMode("menu"));
 elements.bookModeButton.addEventListener("click", () => setMode("book"));
+elements.didYouKnowModeButton.addEventListener("click", () => setMode("didYouKnow"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
 elements.feedbackModeButton.addEventListener("click", () => setMode("feedback"));
 elements.ownerModeButton.addEventListener("click", () => setMode("owner"));
@@ -3103,7 +3109,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=bookingread1");
+    navigator.serviceWorker.register("sw.js?v=didyouknow1");
   });
 }
 
