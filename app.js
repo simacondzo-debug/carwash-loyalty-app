@@ -11,7 +11,7 @@ const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=carwashicon1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=rebrand1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -259,7 +259,9 @@ function migrateState(loadedState) {
     return {
       ...customer,
       phone: String(customer.phone || ""),
-      manualCode: customer.manualCode || (hasPhone ? "" : `SHL-WALK-${String(index + 1).padStart(3, "0")}`),
+      manualCode: normalizeManualCodeForBrand(
+        customer.manualCode || (hasPhone ? "" : `TCW-WALK-${String(index + 1).padStart(3, "0")}`),
+      ),
       facebookFollowed: Boolean(customer.facebookFollowed),
       lifetimePaidWashes: Number(customer.lifetimePaidWashes || 0),
       freeWashesRedeemed: Number(customer.freeWashesRedeemed || 0),
@@ -695,18 +697,29 @@ function vehicleLabel(customer) {
   return `${vehicles.length} vehicles: ${vehicles.join(", ")}`;
 }
 
+function normalizeManualCodeForBrand(code) {
+  return String(code || "").replace(/^SHL-WALK-/, "TCW-WALK-");
+}
+
+function legacyCustomerCode(customer) {
+  const phone = normalizePhone(customer.phone);
+  if (phone) return `SHL-${phone.slice(-4).padStart(4, "0")}`;
+  const manualCode = normalizeManualCodeForBrand(customer.manualCode);
+  return manualCode ? manualCode.replace(/^TCW-WALK-/, "SHL-WALK-") : "";
+}
+
 function nextManualCustomerCode() {
   const highest = state.customers.reduce((max, customer) => {
-    const match = String(customer.manualCode || "").match(/^SHL-WALK-(\d+)$/);
+    const match = String(customer.manualCode || "").match(/^(?:SHL|TCW)-WALK-(\d+)$/);
     return match ? Math.max(max, Number(match[1])) : max;
   }, 0);
-  return `SHL-WALK-${String(highest + 1).padStart(3, "0")}`;
+  return `TCW-WALK-${String(highest + 1).padStart(3, "0")}`;
 }
 
 function customerCode(customer) {
   const phone = normalizePhone(customer.phone);
-  if (phone) return `SHL-${phone.slice(-4).padStart(4, "0")}`;
-  if (customer.manualCode) return customer.manualCode;
+  if (phone) return `TCW-${phone.slice(-4).padStart(4, "0")}`;
+  if (customer.manualCode) return normalizeManualCodeForBrand(customer.manualCode);
   return nextManualCustomerCode();
 }
 
@@ -784,6 +797,7 @@ function customerSearchText(customer) {
     customer.phone,
     customer.manualCode,
     customerCode(customer),
+    legacyCustomerCode(customer),
     customer.plate,
     ...normalizeVehicleList(customer.vehicles, customer.plate),
   ]
@@ -926,7 +940,7 @@ function renderCustomerNotice() {
   }
 
   elements.noticeStatus.textContent = notice.type || "Notice";
-  elements.noticeTitle.textContent = "THE CARWASH @ SHELL";
+  elements.noticeTitle.textContent = "THE CARWASH";
   elements.noticeMessage.textContent = notice.message;
   elements.noticeMeta.textContent = notice.expiresOn
     ? `Shown until ${displayDate(notice.expiresOn)}`
@@ -1064,12 +1078,12 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "carwashicon1");
+  url.searchParams.set("v", "rebrand1");
   return url.href;
 }
 
 function customerAppInviteMessage(customer) {
-  return `Hi ${customer.name}, THE CARWASH @ SHELL has created your loyalty card. Open this link to install or open the app: ${customerAppLink(customer)}. Your customer code is ${customerCode(customer)}.`;
+  return `Hi ${customer.name}, THE CARWASH has created your loyalty card. Open this link to install or open the app: ${customerAppLink(customer)}. Your customer code is ${customerCode(customer)}.`;
 }
 
 function renderOwnerCustomerInvite(customer) {
@@ -1215,7 +1229,7 @@ function renderBookingConfirmationPopup() {
   markBookingAlertSeen(booking);
   if (booking.status === "completed") {
     elements.bookingAlertModalTitle.textContent = "Your wash is complete";
-    elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been marked complete. Thank you for visiting THE CARWASH @ SHELL.`;
+    elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been marked complete. Thank you for visiting THE CARWASH.`;
   } else {
     elements.bookingAlertModalTitle.textContent = "Your wash is in the queue";
     elements.bookingAlertModalMessage.textContent = `Your ${booking.serviceName} booking has been confirmed. Your queue number is ${booking.queueNumber}.`;
@@ -1669,7 +1683,7 @@ function renderCustomerCard() {
   elements.customerCardDisplay.hidden = !hasCustomer;
 
   if (!customer) {
-    elements.customerCode.textContent = "SHL-0000";
+    elements.customerCode.textContent = "TCW-0000";
     elements.customerCodeName.textContent = "Open a customer card to show this code.";
     elements.customerReplyPreview.classList.add("is-hidden");
     elements.customerReplyPreview.innerHTML = "";
@@ -1909,26 +1923,26 @@ function whatsappLink(customer, message) {
 }
 
 function freeWashMessage(customer) {
-  return `Hi ${customer.name}, THE CARWASH @ SHELL says your loyalty card is ready for your free wash. Show your customer code ${customerCode(customer)} when you arrive.`;
+  return `Hi ${customer.name}, THE CARWASH says your loyalty card is ready for your free wash. Show your customer code ${customerCode(customer)} when you arrive.`;
 }
 
 function competitionMessage(customer) {
-  return `Hi ${customer.name}, THE CARWASH @ SHELL says you are entered in our monthly competition to win 1 free wash every month for a year. Good luck!`;
+  return `Hi ${customer.name}, THE CARWASH says you are entered in our monthly competition to win 1 free wash every month for a year. Good luck!`;
 }
 
 function verifiedWashMessage(customer, details = {}) {
   const service = details.service || "wash";
   const plate = details.plate ? ` for ${details.plate}` : "";
   if (isReadyForFreeWash(customer)) {
-    return `Hi ${customer.name}, THE CARWASH @ SHELL has verified your ${service}${plate}. Your loyalty card is now full at 9/9 stamps, so your next wash is free. Show customer code ${customerCode(customer)} when you arrive.`;
+    return `Hi ${customer.name}, THE CARWASH has verified your ${service}${plate}. Your loyalty card is now full at 9/9 stamps, so your next wash is free. Show customer code ${customerCode(customer)} when you arrive.`;
   }
-  return `Hi ${customer.name}, THE CARWASH @ SHELL has verified your ${service}${plate}. Your loyalty card is now ${customer.stampBalance}/9 stamps. You need ${washesUntilFree(customer)} more paid wash${washesUntilFree(customer) === 1 ? "" : "es"} for a free wash.`;
+  return `Hi ${customer.name}, THE CARWASH has verified your ${service}${plate}. Your loyalty card is now ${customer.stampBalance}/9 stamps. You need ${washesUntilFree(customer)} more paid wash${washesUntilFree(customer) === 1 ? "" : "es"} for a free wash.`;
 }
 
 function redeemedWashMessage(customer, details = {}) {
   const service = details.service || "free wash";
   const plate = details.plate ? ` for ${details.plate}` : "";
-  return `Hi ${customer.name}, THE CARWASH @ SHELL has redeemed your ${service}${plate}. Your loyalty card has reset and you can start earning stamps again. Thank you for your support.`;
+  return `Hi ${customer.name}, THE CARWASH has redeemed your ${service}${plate}. Your loyalty card has reset and you can start earning stamps again. Thank you for your support.`;
 }
 
 function openVerificationWhatsApp(customer, message) {
@@ -2582,11 +2596,11 @@ async function registerOwnerDevice() {
     const credential = await navigator.credentials.create({
       publicKey: {
         challenge: randomChallenge(),
-        rp: { name: "THE CARWASH @ SHELL" },
+        rp: { name: "THE CARWASH" },
         user: {
           id: randomChallenge(),
-          name: "owner@thecarwashatshell.local",
-          displayName: "THE CARWASH @ SHELL Owner",
+          name: "owner@thecarwash.local",
+          displayName: "THE CARWASH Owner",
         },
         pubKeyCredParams: [
           { type: "public-key", alg: -7 },
@@ -3109,7 +3123,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=carwashicon1");
+    navigator.serviceWorker.register("sw.js?v=rebrand1");
   });
 }
 

@@ -143,5 +143,5 @@ createServer(async (request, response) => {
     sendJson(response, 500, { error: error.message || "Server error" });
   }
 }).listen(PORT, "127.0.0.1", () => {
-  console.log(`THE CARWASH @ SHELL app running at http://127.0.0.1:${PORT}`);
+  console.log(`THE CARWASH app running at http://127.0.0.1:${PORT}`);
 });
