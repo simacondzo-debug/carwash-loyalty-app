@@ -8,10 +8,10 @@
     <meta name="apple-mobile-web-app-title" content="Carwash @ Shell" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH @ SHELL</title>
-    <link rel="manifest" href="manifest.webmanifest?v=didyouknow1" />
+    <link rel="manifest" href="manifest.webmanifest?v=exactpin1" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <link rel="icon" href="icons/icon-192.png" />
-    <link rel="stylesheet" href="styles.css?v=didyouknow1" />
+    <link rel="stylesheet" href="styles.css?v=exactpin1" />
   </head>
   <body>
     <div class="phone-app">
@@ -347,6 +347,19 @@
               <a class="primary-action" href="tel:+27671274347">Call us</a>
               <a class="ghost-button" href="mailto:ekasigroup1@gmail.com">Email us</a>
             </div>
+            <a
+              class="location-card"
+              href="https://www.google.com/maps/dir/?api=1&destination=-26.876419040809132%2C26.66416782488172"
+              target="_blank"
+              rel="noopener"
+              aria-label="Open THE CAR WASH @ SHELL location in Google Maps"
+            >
+              <span class="location-pin" aria-hidden="true"></span>
+              <span>
+                <strong>Find us on the map</strong>
+                <small>Tap to open directions to THE CAR WASH @ SHELL.</small>
+              </span>
+            </a>
             <div class="qr-card">
               <div>
                 <p class="eyebrow">Customer App</p>
@@ -852,6 +865,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=didyouknow1"></script>
+    <script src="app.js?v=exactpin1"></script>
   </body>
 </html>
