@@ -6,13 +6,14 @@ const SEEN_BOOKING_ALERTS_KEY = "the-carwash-at-shell-seen-booking-alerts-v1";
 const OWNER_SEEN_BOOKINGS_KEY = "the-carwash-at-shell-owner-seen-bookings-v1";
 const OWNER_SEEN_FEEDBACK_KEY = "the-carwash-at-shell-owner-seen-feedback-v1";
 const OWNER_CREDENTIAL_KEY = "the-carwash-at-shell-owner-credential-v1";
+const INSTALL_HIDDEN_KEY = "the-carwash-install-button-hidden-v1";
 const STATE_API_URL = "api/state";
 const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=finaltouch1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=installhide1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -1140,6 +1141,26 @@ function updateOfflineBanner() {
   elements.offlineBanner.classList.toggle("is-hidden", navigator.onLine);
 }
 
+function appIsStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function hideInstallButton(persist = false) {
+  elements.installButton.hidden = true;
+  elements.installButton.classList.add("is-hidden");
+  deferredInstallPrompt = null;
+  if (persist) localStorage.setItem(INSTALL_HIDDEN_KEY, "1");
+}
+
+function updateInstallButton() {
+  if (appIsStandalone() || localStorage.getItem(INSTALL_HIDDEN_KEY) === "1") {
+    hideInstallButton(false);
+    return;
+  }
+  elements.installButton.hidden = false;
+  elements.installButton.classList.remove("is-hidden");
+}
+
 function setBookingAlert(message) {
   elements.bookingAlert.textContent = message;
   elements.bookingAlert.classList.toggle("visible", Boolean(message));
@@ -1162,7 +1183,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "finaltouch1");
+  url.searchParams.set("v", "installhide1");
   return url.href;
 }
 
@@ -1759,7 +1780,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "finaltouch1",
+    backupVersion: "installhide1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3260,21 +3281,32 @@ elements.runDrawButton.addEventListener("click", () => {
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   deferredInstallPrompt = event;
+  updateInstallButton();
+});
+
+window.addEventListener("appinstalled", () => {
+  hideInstallButton(true);
 });
 
 elements.installButton.addEventListener("click", async () => {
   if (deferredInstallPrompt) {
     deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
+    const choice = await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
+    if (choice.outcome === "accepted") {
+      hideInstallButton(true);
+    } else {
+      updateInstallButton();
+    }
     return;
   }
   alert("On iPhone, open Safari Share and choose Add to Home Screen. On Android, use the browser install option.");
+  hideInstallButton(true);
 });
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=finaltouch1");
+    navigator.serviceWorker.register("sw.js?v=installhide1");
   });
 }
 
@@ -3282,6 +3314,7 @@ async function initializeApp() {
   await loadSharedState();
   activateLinkedCustomer();
   syncOwnerAccessVisibility();
+  updateInstallButton();
   setMode(ownerSetupRequested ? "owner" : "customer");
   setOwnerUnlocked(false);
   render();
