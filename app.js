@@ -12,7 +12,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=proloyalty1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=verifydate1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -204,6 +204,7 @@ const elements = {
   ownerVerifyForm: document.querySelector("#ownerVerifyForm"),
   ownerVerifyPanel: document.querySelector("#ownerVerifyPanel"),
   ownerView: document.querySelector("#ownerView"),
+  ownerWashDate: document.querySelector("#ownerWashDate"),
   ownerWhatsappOnVerify: document.querySelector("#ownerWhatsappOnVerify"),
   customerNoticeBanner: document.querySelector("#customerNoticeBanner"),
   redeemFreeButton: document.querySelector("#redeemFreeButton"),
@@ -423,6 +424,11 @@ function displayDate(dateString) {
     month: "short",
     year: "numeric",
   }).format(new Date(`${dateString}T00:00:00`));
+}
+
+function validAppDate(dateString) {
+  const value = String(dateString || "");
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 function formatNumber(value) {
@@ -938,6 +944,7 @@ function searchManageCustomer() {
 }
 
 function render() {
+  syncOwnerWashDate();
   renderCustomerNotice();
   renderCustomerAppQr();
   renderMenu();
@@ -1141,7 +1148,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "proloyalty1");
+  url.searchParams.set("v", "verifydate1");
   return url.href;
 }
 
@@ -1716,6 +1723,20 @@ function setOwnerBackupAlert(message) {
   elements.ownerBackupAlert.classList.toggle("visible", Boolean(message));
 }
 
+function syncOwnerWashDate() {
+  if (!elements.ownerWashDate) return;
+  const currentDate = today();
+  elements.ownerWashDate.max = currentDate;
+  if (!validAppDate(elements.ownerWashDate.value) || elements.ownerWashDate.value > currentDate) {
+    elements.ownerWashDate.value = currentDate;
+  }
+}
+
+function selectedOwnerWashDate() {
+  syncOwnerWashDate();
+  return elements.ownerWashDate?.value || today();
+}
+
 function exportOwnerBackup() {
   if (!ownerUnlocked) {
     setOwnerBackupAlert("Unlock owner verification before exporting a backup.");
@@ -1724,7 +1745,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "proloyalty1",
+    backupVersion: "verifydate1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -2568,9 +2589,10 @@ function addPaidWash(customer, details = {}) {
     return false;
   }
 
+  const washDate = validAppDate(details.date) ? details.date : today();
   customer.stampBalance += 1;
   customer.lifetimePaidWashes += 1;
-  customer.lastWash = today();
+  customer.lastWash = washDate;
   if (details.plate) addVehicleToCustomer(customer, details.plate);
 
   state.activities.push({
@@ -2581,7 +2603,7 @@ function addPaidWash(customer, details = {}) {
     service: details.service || "Full wash",
     plate: details.plate || primaryPlate(customer),
     note: details.note || (isReadyForFreeWash(customer) ? "Free wash now ready" : "Owner verified"),
-    date: today(),
+    date: washDate,
   });
   setOwnerAlert(isReadyForFreeWash(customer) ? `${customer.name}'s free wash is now ready.` : "Paid wash verified.");
   return true;
@@ -2593,9 +2615,10 @@ function redeemFreeWash(customer, details = {}) {
     return false;
   }
 
+  const washDate = validAppDate(details.date) ? details.date : today();
   customer.stampBalance = 0;
   customer.freeWashesRedeemed += 1;
-  customer.lastWash = today();
+  customer.lastWash = washDate;
   if (details.plate) addVehicleToCustomer(customer, details.plate);
 
   state.activities.push({
@@ -2606,7 +2629,7 @@ function redeemFreeWash(customer, details = {}) {
     service: details.service || "Exterior wash",
     plate: details.plate || primaryPlate(customer),
     note: details.note || "10th wash redeemed",
-    date: today(),
+    date: washDate,
   });
   setOwnerAlert(`${customer.name}'s free wash was redeemed. Their card has reset.`);
   return true;
@@ -2624,6 +2647,7 @@ function ownerDetails() {
   return {
     service: elements.ownerService.value,
     plate,
+    date: selectedOwnerWashDate(),
     note: elements.ownerNote.value.trim(),
   };
 }
@@ -3112,6 +3136,7 @@ elements.ownerVerifyForm.addEventListener("submit", (event) => {
     if (whatsappAlert) setOwnerAlert(`${currentAlert} ${whatsappAlert}`);
     elements.ownerNote.value = "";
     elements.ownerPlate.value = "";
+    syncOwnerWashDate();
     render();
   }
 });
@@ -3128,6 +3153,7 @@ elements.redeemFreeButton.addEventListener("click", () => {
     if (whatsappAlert) setOwnerAlert(`${currentAlert} ${whatsappAlert}`);
     elements.ownerNote.value = "";
     elements.ownerPlate.value = "";
+    syncOwnerWashDate();
     render();
   }
 });
@@ -3225,7 +3251,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=proloyalty1");
+    navigator.serviceWorker.register("sw.js?v=verifydate1");
   });
 }
 
