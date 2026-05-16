@@ -13,7 +13,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerdash1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=syncfix1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -61,6 +61,8 @@ let menuStatus = "loading";
 let sharedStateReady = false;
 let sharedStateVersion = 0;
 let suppressSharedSave = false;
+let sharedStateDirty = false;
+let sharedStateLoading = false;
 let sharedSaveTimer = null;
 
 const elements = {
@@ -286,6 +288,7 @@ function migrateState(loadedState) {
       stampBalance: Number(customer.stampBalance || 0),
       vehicles,
       plate: vehicles[0] || "",
+      updatedAt: String(customer.updatedAt || ""),
     };
   });
 
@@ -314,18 +317,26 @@ function cacheStateLocally() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function stateItemTime(value = {}) {
+  const parsed = Date.parse(
+    value.updatedAt || value.replyDate || value.date || value.lastWash || value.joined || "",
+  );
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function mergeByKey(remoteItems = [], localItems = [], keyForItem = (item) => item.id) {
-  const merged = [];
-  const seen = new Set();
+  const merged = new Map();
 
   [...remoteItems, ...localItems].forEach((item) => {
     const key = keyForItem(item);
-    if (!key || seen.has(key)) return;
-    seen.add(key);
-    merged.push(item);
+    if (!key) return;
+    const existing = merged.get(key);
+    if (!existing || stateItemTime(item) >= stateItemTime(existing)) {
+      merged.set(key, item);
+    }
   });
 
-  return merged;
+  return [...merged.values()];
 }
 
 function mergeLoadedState(localState, remoteState) {
@@ -341,7 +352,7 @@ function mergeLoadedState(localState, remoteState) {
     draws: mergeByKey(remote.draws, local.draws, (draw) => draw.id || `${draw.month}:${draw.customerId}`),
     feedback: mergeByKey(remote.feedback, local.feedback),
     menuProducts: remote.menuProducts.length ? remote.menuProducts : local.menuProducts,
-    notice: remote.notice?.message ? remote.notice : local.notice,
+    notice: stateItemTime(local.notice) > stateItemTime(remote.notice) ? local.notice : remote.notice,
   };
 }
 
@@ -352,11 +363,13 @@ async function fetchSharedState() {
 }
 
 async function loadSharedState() {
+  if (sharedStateLoading) return false;
+  sharedStateLoading = true;
   try {
     const payload = await fetchSharedState();
     if (payload?.state) {
       const mergedState = mergeLoadedState(state, payload.state);
-      const changed = JSON.stringify(mergedState) !== JSON.stringify(payload.state);
+      const changed = sharedStateDirty || JSON.stringify(mergedState) !== JSON.stringify(payload.state);
       state = mergedState;
       sharedStateVersion = Number(payload.version || 0);
       sharedStateReady = true;
@@ -366,12 +379,19 @@ async function loadSharedState() {
     }
   } catch {
     sharedStateReady = false;
+  } finally {
+    sharedStateLoading = false;
   }
   return false;
 }
 
 function queueSharedStateSave() {
-  if (!sharedStateReady || suppressSharedSave) return;
+  if (suppressSharedSave) return;
+  sharedStateDirty = true;
+  if (!sharedStateReady) {
+    loadSharedState();
+    return;
+  }
   clearTimeout(sharedSaveTimer);
   sharedSaveTimer = setTimeout(pushSharedState, 250);
 }
@@ -386,25 +406,45 @@ async function pushSharedState() {
     });
     if (!response.ok) throw new Error("Could not save shared state.");
     const payload = await response.json();
+    if (payload?.state) {
+      state = mergeLoadedState(state, payload.state);
+      cacheStateLocally();
+    }
     sharedStateVersion = Number(payload.version || sharedStateVersion);
+    sharedStateDirty = false;
   } catch {
     sharedStateReady = false;
+    sharedStateDirty = true;
   }
 }
 
 async function refreshSharedState() {
-  if (!sharedStateReady) return;
+  if (!sharedStateReady) {
+    const loaded = await loadSharedState();
+    if (loaded) render();
+    return;
+  }
   try {
     const payload = await fetchSharedState();
     const nextVersion = Number(payload.version || 0);
-    if (!payload.state || nextVersion <= sharedStateVersion) return;
+    if (!payload.state) return;
+    if (nextVersion <= sharedStateVersion) {
+      if (sharedStateDirty) queueSharedStateSave();
+      return;
+    }
+    const mergedState = mergeLoadedState(state, payload.state);
+    const shouldPushMerged = sharedStateDirty || JSON.stringify(mergedState) !== JSON.stringify(payload.state);
     suppressSharedSave = true;
-    state = migrateState(payload.state);
+    state = mergedState;
     sharedStateVersion = nextVersion;
     cacheStateLocally();
     render();
+    if (shouldPushMerged) {
+      setTimeout(queueSharedStateSave, 0);
+    }
   } catch {
     sharedStateReady = false;
+    sharedStateDirty = true;
   } finally {
     suppressSharedSave = false;
   }
@@ -427,6 +467,10 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
 function displayDate(dateString) {
   if (!dateString) return "";
   return new Intl.DateTimeFormat("en-ZA", {
@@ -434,6 +478,18 @@ function displayDate(dateString) {
     month: "short",
     year: "numeric",
   }).format(new Date(`${dateString}T00:00:00`));
+}
+
+function displayDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat("en-ZA", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function validAppDate(dateString) {
@@ -511,6 +567,7 @@ function normalizeMenuItem(row) {
     category,
     sku: String(row.sku || row.SKU || "").trim(),
     vatEnabled: Boolean(row.vatEnabled) || String(row["VAT Enabled"] || "").toLowerCase() === "yes",
+    updatedAt: String(row.updatedAt || ""),
   };
 }
 
@@ -700,12 +757,17 @@ function primaryPlate(customer) {
   return customer.vehicles?.[0] || customer.plate || "";
 }
 
+function touchCustomer(customer) {
+  if (customer) customer.updatedAt = nowIso();
+}
+
 function addVehicleToCustomer(customer, plate) {
   const normalizedPlate = normalizePlate(plate);
   if (!normalizedPlate) return false;
   const vehicles = normalizeVehicleList(customer.vehicles, customer.plate);
   if (!vehicles.includes(normalizedPlate)) {
     vehicles.push(normalizedPlate);
+    customer.updatedAt = nowIso();
   }
   customer.vehicles = vehicles;
   customer.plate = vehicles[0] || "";
@@ -1190,7 +1252,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "ownerdash1");
+  url.searchParams.set("v", "syncfix1");
   return url.href;
 }
 
@@ -1482,11 +1544,12 @@ function ensureBookingCustomer({ name, phone, plate }) {
       whatsappOptIn: false,
       lastWash: today(),
       joined: today(),
+      updatedAt: nowIso(),
     };
     state.customers.push(customer);
   } else {
     customer.name = name || customer.name;
-    addVehicleToCustomer(customer, plate);
+    if (addVehicleToCustomer(customer, plate) || name) touchCustomer(customer);
   }
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   return customer;
@@ -1527,6 +1590,7 @@ function addOwnerCustomer(event) {
     whatsappOptIn: Boolean(normalizedPhone && elements.ownerAddWhatsappOptIn.checked),
     lastWash: today(),
     joined: today(),
+    updatedAt: nowIso(),
   };
 
   state.customers.push(customer);
@@ -1568,7 +1632,7 @@ function submitBooking(event) {
     status: "pending",
     queueNumber: "",
     date: today(),
-    updatedAt: today(),
+    updatedAt: nowIso(),
   };
 
   state.bookings.unshift(booking);
@@ -1659,7 +1723,7 @@ function renderOwnerBookings() {
       </div>
       <div class="booking-card-details">
         <span>${escapeHtml(customerWhatsappStatus)}</span>
-        <span>Updated ${escapeHtml(booking.updatedAt || booking.date || "today")}</span>
+        <span>Updated ${escapeHtml(displayDateTime(booking.updatedAt) || booking.date || "today")}</span>
         <span>${escapeHtml(booking.queueNumber ? `Queue ${booking.queueNumber}` : "No queue number yet")}</span>
       </div>
       ${noteHtml}
@@ -1677,7 +1741,7 @@ function updateBookingQueue(bookingId, queueNumber) {
   if (!booking) return;
   booking.queueNumber = String(queueNumber || "").trim();
   booking.status = booking.queueNumber ? "queued" : "pending";
-  booking.updatedAt = today();
+  booking.updatedAt = nowIso();
   render();
 }
 
@@ -1685,7 +1749,7 @@ function updateBookingStatus(bookingId, status) {
   const booking = state.bookings.find((item) => item.id === bookingId);
   if (!booking) return;
   booking.status = status;
-  booking.updatedAt = today();
+  booking.updatedAt = nowIso();
   render();
 }
 
@@ -1841,6 +1905,7 @@ function createBlankProduct() {
     category: "FULL WASHES",
     sku: "",
     vatEnabled: true,
+    updatedAt: nowIso(),
   };
   menuItems.push(item);
   state.menuProducts = menuItems;
@@ -1872,6 +1937,7 @@ function saveOwnerProduct(event) {
     sku: elements.ownerProductSku.value.trim(),
     description: elements.ownerProductDescription.value.trim(),
     vatEnabled: true,
+    updatedAt: nowIso(),
   });
   if (!product) menuItems.push(item);
   state.menuProducts = menuItems;
@@ -1931,7 +1997,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "ownerdash1",
+    backupVersion: "syncfix1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -1963,7 +2029,7 @@ function publishCustomerNotice() {
     type: elements.noticeType.value,
     message,
     expiresOn: elements.noticeExpires.value,
-    updatedAt: today(),
+    updatedAt: nowIso(),
   };
   setNoticeAlert(state.notice.active ? "Customer message published." : "Message saved but hidden from customers.");
   renderCustomerNotice();
@@ -1972,7 +2038,7 @@ function publishCustomerNotice() {
 }
 
 function clearCustomerNotice() {
-  state.notice = { ...emptyState.notice };
+  state.notice = { ...emptyState.notice, updatedAt: nowIso() };
   setNoticeAlert("Customer message cleared.");
   renderCustomerNotice();
   renderOwnerNoticeForm();
@@ -2455,6 +2521,7 @@ function saveFeedbackReply(feedbackId, reply) {
 
   item.ownerReply = reply;
   item.replyDate = today();
+  item.updatedAt = nowIso();
   renderFeedbackInbox();
   renderCustomerResponses();
   saveState();
@@ -2637,6 +2704,7 @@ function updateCustomerFromOwner(customer) {
   customer.manualCode = normalizedPhone ? "" : customer.manualCode || nextManualCustomerCode();
   customer.whatsappOptIn = Boolean(normalizedPhone && elements.manageWhatsappOptIn.checked);
   if (newVehicle) addVehicleToCustomer(customer, newVehicle);
+  touchCustomer(customer);
 
   state.activities.forEach((activity) => {
     if (activity.customerId === customer.id) {
@@ -2666,6 +2734,7 @@ function removeSelectedVehicle(customer) {
   );
   customer.vehicles = vehicles;
   customer.plate = vehicles[0] || "";
+  touchCustomer(customer);
   setManageAlert(`${plate} removed from this customer.`);
   return true;
 }
@@ -2694,9 +2763,11 @@ function revokeLastPaidWash(customer) {
   customer.stampBalance = Math.max(0, customer.stampBalance - 1);
   customer.lifetimePaidWashes = Math.max(0, customer.lifetimePaidWashes - 1);
   customer.lastWash = today();
+  touchCustomer(customer);
 
   if (paidActivity) {
     paidActivity.revoked = true;
+    paidActivity.updatedAt = nowIso();
   }
 
   state.activities.push({
@@ -2709,6 +2780,7 @@ function revokeLastPaidWash(customer) {
     note: paidActivity ? "Owner revoked a verified paid wash" : "Owner adjusted paid wash count",
     revokedActivityId: paidActivity?.id || null,
     date: today(),
+    updatedAt: nowIso(),
   });
 
   setManageAlert("Last paid wash stamp revoked.");
@@ -2752,6 +2824,7 @@ function runMonthlyDraw() {
     month: currentDrawMonth(),
     prize: DRAW_PRIZE,
     date: today(),
+    updatedAt: nowIso(),
   };
 
   state.draws.unshift(draw);
@@ -2764,6 +2837,7 @@ function runMonthlyDraw() {
     plate: primaryPlate(winner),
     note: `Won ${DRAW_PRIZE}`,
     date: today(),
+    updatedAt: nowIso(),
   });
   elements.drawResult.textContent = `${winner.name} wins ${DRAW_PRIZE}.`;
   elements.drawResult.classList.add("visible");
@@ -2781,6 +2855,7 @@ function addPaidWash(customer, details = {}) {
   customer.lifetimePaidWashes += 1;
   customer.lastWash = washDate;
   if (details.plate) addVehicleToCustomer(customer, details.plate);
+  touchCustomer(customer);
 
   state.activities.push({
     id: crypto.randomUUID(),
@@ -2791,6 +2866,7 @@ function addPaidWash(customer, details = {}) {
     plate: details.plate || primaryPlate(customer),
     note: details.note || (isReadyForFreeWash(customer) ? "Free wash now ready" : "Owner verified"),
     date: washDate,
+    updatedAt: nowIso(),
   });
   setOwnerAlert(isReadyForFreeWash(customer) ? `${customer.name}'s free wash is now ready.` : "Paid wash verified.");
   return true;
@@ -2807,6 +2883,7 @@ function redeemFreeWash(customer, details = {}) {
   customer.freeWashesRedeemed += 1;
   customer.lastWash = washDate;
   if (details.plate) addVehicleToCustomer(customer, details.plate);
+  touchCustomer(customer);
 
   state.activities.push({
     id: crypto.randomUUID(),
@@ -2817,6 +2894,7 @@ function redeemFreeWash(customer, details = {}) {
     plate: details.plate || primaryPlate(customer),
     note: details.note || "10th wash redeemed",
     date: washDate,
+    updatedAt: nowIso(),
   });
   setOwnerAlert(`${customer.name}'s free wash was redeemed. Their card has reset.`);
   return true;
@@ -3143,6 +3221,7 @@ function submitFeedback(event) {
     phone,
     message,
     date: today(),
+    updatedAt: nowIso(),
   };
 
   state.feedback.unshift(feedbackItem);
@@ -3313,12 +3392,14 @@ elements.customerForm.addEventListener("submit", (event) => {
       whatsappOptIn: elements.customerWhatsappOptIn.checked,
       lastWash: today(),
       joined: today(),
+      updatedAt: nowIso(),
     };
     state.customers.push(customer);
   } else {
     customer.name = elements.customerName.value.trim() || customer.name;
     addVehicleToCustomer(customer, elements.customerPlate.value);
     customer.whatsappOptIn = customer.whatsappOptIn || elements.customerWhatsappOptIn.checked;
+    touchCustomer(customer);
   }
 
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
@@ -3341,6 +3422,7 @@ elements.customerCardDisplay.addEventListener("submit", (event) => {
   if (!customer || !input) return;
 
   addVehicleToCustomer(customer, input.value);
+  touchCustomer(customer);
   input.value = "";
   render();
 });
@@ -3489,7 +3571,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=ownerdash1");
+    navigator.serviceWorker.register("sw.js?v=syncfix1");
   });
 }
 

@@ -49,6 +49,58 @@ function normalizePayload(value = {}) {
   };
 }
 
+function normalizePhone(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function itemTime(value = {}) {
+  const parsed = Date.parse(
+    value.updatedAt || value.replyDate || value.date || value.lastWash || value.joined || "",
+  );
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function mergeByKey(currentItems = [], incomingItems = [], keyForItem = (item) => item.id) {
+  const merged = new Map();
+
+  for (const item of currentItems) {
+    const key = keyForItem(item);
+    if (key) merged.set(key, item);
+  }
+
+  for (const item of incomingItems) {
+    const key = keyForItem(item);
+    if (!key) continue;
+    const existing = merged.get(key);
+    if (!existing || itemTime(item) >= itemTime(existing)) {
+      merged.set(key, item);
+    }
+  }
+
+  return [...merged.values()];
+}
+
+function mergeState(currentState, incomingState) {
+  const current = normalizeState(currentState || emptyState);
+  const incoming = normalizeState(incomingState || emptyState);
+  return {
+    ...current,
+    ...incoming,
+    customers: mergeByKey(current.customers, incoming.customers, (customer) =>
+      normalizePhone(customer.phone) || customer.id,
+    ),
+    activities: mergeByKey(current.activities, incoming.activities),
+    bookings: mergeByKey(current.bookings, incoming.bookings),
+    draws: mergeByKey(current.draws, incoming.draws, (draw) => draw.id || `${draw.month}:${draw.customerId}`),
+    feedback: mergeByKey(current.feedback, incoming.feedback),
+    menuProducts: incoming.menuProducts.length ? incoming.menuProducts : current.menuProducts,
+    notice:
+      incoming.notice?.updatedAt && itemTime(incoming.notice) >= itemTime(current.notice)
+        ? incoming.notice
+        : current.notice,
+  };
+}
+
 async function requestJson(request) {
   const chunks = [];
   for await (const chunk of request) {
@@ -119,9 +171,11 @@ export default async function handler(request, response) {
     if (request.method === "POST") {
       const current = await readPayload();
       const body = await requestJson(request);
+      const incomingVersion = Number(body.version || 0);
+      const incomingState = normalizeState(body.state || emptyState);
       const payload = {
         version: current.version + 1,
-        state: normalizeState(body.state || emptyState),
+        state: incomingVersion >= current.version ? incomingState : mergeState(current.state, incomingState),
       };
       await writePayload(payload);
       sendJson(response, 200, payload);

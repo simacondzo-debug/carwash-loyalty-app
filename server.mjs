@@ -65,12 +65,75 @@ async function writeSharedState(nextState) {
     const current = await readSharedState();
     const payload = {
       version: current.version + 1,
-      state: { ...emptyState, ...nextState },
+      state: mergeState(current.state, nextState),
     };
     await writeFile(DATA_FILE, JSON.stringify(payload, null, 2));
     return payload;
   });
   return writeQueue;
+}
+
+function normalizePhone(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function itemTime(value = {}) {
+  const parsed = Date.parse(
+    value.updatedAt || value.replyDate || value.date || value.lastWash || value.joined || "",
+  );
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function normalizeState(value = {}) {
+  return {
+    ...emptyState,
+    ...value,
+    customers: Array.isArray(value.customers) ? value.customers : [],
+    activities: Array.isArray(value.activities) ? value.activities : [],
+    bookings: Array.isArray(value.bookings) ? value.bookings : [],
+    draws: Array.isArray(value.draws) ? value.draws : [],
+    feedback: Array.isArray(value.feedback) ? value.feedback : [],
+    menuProducts: Array.isArray(value.menuProducts) ? value.menuProducts : [],
+    notice: value.notice && typeof value.notice === "object" ? { ...emptyState.notice, ...value.notice } : { ...emptyState.notice },
+  };
+}
+
+function mergeByKey(currentItems = [], incomingItems = [], keyForItem = (item) => item.id) {
+  const merged = new Map();
+  for (const item of currentItems) {
+    const key = keyForItem(item);
+    if (key) merged.set(key, item);
+  }
+  for (const item of incomingItems) {
+    const key = keyForItem(item);
+    if (!key) continue;
+    const existing = merged.get(key);
+    if (!existing || itemTime(item) >= itemTime(existing)) {
+      merged.set(key, item);
+    }
+  }
+  return [...merged.values()];
+}
+
+function mergeState(currentState, incomingState) {
+  const current = normalizeState(currentState || emptyState);
+  const incoming = normalizeState(incomingState || emptyState);
+  return {
+    ...current,
+    ...incoming,
+    customers: mergeByKey(current.customers, incoming.customers, (customer) =>
+      normalizePhone(customer.phone) || customer.id,
+    ),
+    activities: mergeByKey(current.activities, incoming.activities),
+    bookings: mergeByKey(current.bookings, incoming.bookings),
+    draws: mergeByKey(current.draws, incoming.draws, (draw) => draw.id || `${draw.month}:${draw.customerId}`),
+    feedback: mergeByKey(current.feedback, incoming.feedback),
+    menuProducts: incoming.menuProducts.length ? incoming.menuProducts : current.menuProducts,
+    notice:
+      incoming.notice?.updatedAt && itemTime(incoming.notice) >= itemTime(current.notice)
+        ? incoming.notice
+        : current.notice,
+  };
 }
 
 function sendJson(response, statusCode, value) {
