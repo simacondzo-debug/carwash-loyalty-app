@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=installhide1" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=installhide1" />
-    <link rel="icon" href="icons/icon-192.png?v=installhide1" />
-    <link rel="stylesheet" href="styles.css?v=installhide1" />
+    <link rel="manifest" href="manifest.webmanifest?v=queuepro1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=queuepro1" />
+    <link rel="icon" href="icons/icon-192.png?v=queuepro1" />
+    <link rel="stylesheet" href="styles.css?v=queuepro1" />
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=installhide1" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=queuepro1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -673,6 +673,29 @@
               </div>
               <span class="menu-count" id="ownerBookingSummary">0 pending</span>
             </div>
+            <div class="booking-queue-dashboard" id="ownerBookingStats" aria-label="Booking queue summary"></div>
+            <div class="booking-queue-tools">
+              <label>
+                Search booking
+                <input id="ownerBookingSearch" type="search" placeholder="Name, phone, plate, service, queue" />
+              </label>
+              <label>
+                Status
+                <select id="ownerBookingFilter">
+                  <option value="active">Active queue</option>
+                  <option value="pending">Needs queue number</option>
+                  <option value="queued">Queue assigned</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="all">All bookings</option>
+                </select>
+              </label>
+              <label>
+                Date
+                <input id="ownerBookingDate" type="date" />
+              </label>
+              <button class="ghost-button" id="ownerBookingClearButton" type="button">Clear</button>
+            </div>
             <div class="booking-list" id="ownerBookingList"></div>
           </section>
 
@@ -964,6 +987,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=installhide1"></script>
+    <script src="app.js?v=queuepro1"></script>
   </body>
 </html>

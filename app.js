@@ -13,7 +13,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=installhide1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=queuepro1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -171,7 +171,12 @@ const elements = {
   ownerBackupAlert: document.querySelector("#ownerBackupAlert"),
   ownerBackupButton: document.querySelector("#ownerBackupButton"),
   ownerBackupPanel: document.querySelector("#ownerBackupPanel"),
+  ownerBookingClearButton: document.querySelector("#ownerBookingClearButton"),
+  ownerBookingDate: document.querySelector("#ownerBookingDate"),
+  ownerBookingFilter: document.querySelector("#ownerBookingFilter"),
   ownerBookingList: document.querySelector("#ownerBookingList"),
+  ownerBookingSearch: document.querySelector("#ownerBookingSearch"),
+  ownerBookingStats: document.querySelector("#ownerBookingStats"),
   ownerBookingSummary: document.querySelector("#ownerBookingSummary"),
   ownerBookingsPanel: document.querySelector("#ownerBookingsPanel"),
   ownerCustomerSearch: document.querySelector("#ownerCustomerSearch"),
@@ -1183,7 +1188,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "installhide1");
+  url.searchParams.set("v", "queuepro1");
   return url.href;
 }
 
@@ -1283,6 +1288,104 @@ function bookingStatusText(booking) {
   if (booking.status === "completed") return "Completed";
   if (booking.status === "cancelled") return "Cancelled";
   return "Waiting for owner";
+}
+
+function bookingStatusRank(status) {
+  const statusRank = { pending: 0, queued: 1, completed: 2, cancelled: 3 };
+  return statusRank[status] ?? 4;
+}
+
+function bookingCustomer(booking) {
+  const phone = normalizePhone(booking.phone);
+  return state.customers.find(
+    (customer) => customer.id === booking.customerId || normalizePhone(customer.phone) === phone,
+  );
+}
+
+function bookingSearchText(booking) {
+  return [
+    booking.customerName,
+    booking.phone,
+    normalizePhone(booking.phone),
+    booking.plate,
+    booking.serviceName,
+    booking.category,
+    booking.price,
+    booking.note,
+    booking.status,
+    booking.queueNumber,
+    booking.date,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function bookingMatchesOwnerFilters(booking) {
+  const statusFilter = elements.ownerBookingFilter.value || "active";
+  const dateFilter = elements.ownerBookingDate.value || "";
+  const query = elements.ownerBookingSearch.value.trim().toLowerCase();
+  const digitQuery = normalizePhone(query);
+
+  const statusMatch =
+    statusFilter === "all" ||
+    (statusFilter === "active" && ["pending", "queued"].includes(booking.status)) ||
+    booking.status === statusFilter;
+
+  const dateMatch = !dateFilter || booking.date === dateFilter;
+  const searchMatch =
+    !query ||
+    bookingSearchText(booking).includes(query) ||
+    (digitQuery && normalizePhone(booking.phone).includes(digitQuery));
+
+  return statusMatch && dateMatch && searchMatch;
+}
+
+function nextBookingQueueNumber(booking) {
+  const date = booking.date || today();
+  const usedNumbers = state.bookings
+    .filter((item) => item.id !== booking.id && (item.date || today()) === date)
+    .map((item) => String(item.queueNumber || "").match(/\d+/g)?.pop())
+    .map((value) => Number(value))
+    .filter(Number.isFinite);
+  const nextNumber = Math.max(0, ...usedNumbers) + 1;
+  return `Q${String(nextNumber).padStart(2, "0")}`;
+}
+
+function bookingContactLinks(booking) {
+  const phone = whatsappNumber(booking.phone);
+  if (!phone) return "";
+  const message = `Hi ${booking.customerName}, THE CARWASH is contacting you about your ${booking.serviceName} booking.`;
+  return `
+    <div class="booking-contact-row">
+      <a class="ghost-button" href="tel:+${escapeHtml(phone)}">Call customer</a>
+      <a class="success-action" href="https://wa.me/${escapeHtml(phone)}?text=${encodeURIComponent(message)}" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  `;
+}
+
+function renderOwnerBookingStats(bookings) {
+  const todayDate = today();
+  const stats = [
+    ["Pending", bookings.filter((booking) => booking.status === "pending").length],
+    ["Queued", bookings.filter((booking) => booking.status === "queued").length],
+    ["Today", bookings.filter((booking) => booking.date === todayDate).length],
+    [
+      "Completed today",
+      bookings.filter((booking) => booking.status === "completed" && booking.date === todayDate).length,
+    ],
+  ];
+
+  elements.ownerBookingStats.innerHTML = stats
+    .map(
+      ([label, value]) => `
+        <div class="booking-queue-stat">
+          <strong>${formatNumber(value)}</strong>
+          <span>${escapeHtml(label)}</span>
+        </div>
+      `,
+    )
+    .join("");
 }
 
 function renderCustomerBookingStatus() {
@@ -1474,14 +1577,16 @@ function submitBooking(event) {
 
 function renderOwnerBookings() {
   const bookings = [...state.bookings].sort((a, b) => {
-    const statusRank = { pending: 0, queued: 1, completed: 2, cancelled: 3 };
     return (
-      (statusRank[a.status] ?? 4) - (statusRank[b.status] ?? 4) ||
+      bookingStatusRank(a.status) - bookingStatusRank(b.status) ||
       String(b.updatedAt || b.date).localeCompare(String(a.updatedAt || a.date))
     );
   });
   const pending = bookings.filter((booking) => booking.status === "pending").length;
-  elements.ownerBookingSummary.textContent = `${pending} pending`;
+  const queued = bookings.filter((booking) => booking.status === "queued").length;
+  const visibleBookings = bookings.filter(bookingMatchesOwnerFilters);
+  elements.ownerBookingSummary.textContent = `${pending} pending / ${queued} queued`;
+  renderOwnerBookingStats(bookings);
   elements.ownerBookingList.innerHTML = "";
 
   if (!bookings.length) {
@@ -1492,7 +1597,49 @@ function renderOwnerBookings() {
     return;
   }
 
-  bookings.forEach((booking) => {
+  if (!visibleBookings.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state compact-empty";
+    empty.innerHTML = "<strong>No matching bookings</strong><span>Clear the search or filters to see more bookings.</span>";
+    elements.ownerBookingList.append(empty);
+    return;
+  }
+
+  visibleBookings.forEach((booking) => {
+    const customer = bookingCustomer(booking);
+    const customerWhatsappStatus = customer?.whatsappOptIn ? "WhatsApp approved" : "WhatsApp not approved";
+    const closedBooking = ["completed", "cancelled"].includes(booking.status);
+    const displayedDate = validAppDate(booking.date) ? displayDate(booking.date) : booking.date || "No date";
+    const noteHtml = booking.note
+      ? `
+        <div class="booking-card-note">
+          <strong>Customer note</strong>
+          <span>${escapeHtml(booking.note)}</span>
+        </div>
+      `
+      : "";
+    const controls = closedBooking
+      ? `
+        <button class="ghost-button full-width" data-booking-reopen="${escapeHtml(booking.id)}" type="button">
+          Reopen booking
+        </button>
+      `
+      : `
+        <form class="booking-queue-form" data-booking-queue-form="${escapeHtml(booking.id)}">
+          <label>
+            Queue number
+            <input data-booking-queue-number type="text" value="${escapeHtml(booking.queueNumber)}" placeholder="${escapeHtml(nextBookingQueueNumber(booking))}" />
+          </label>
+          <div class="button-row">
+            <button class="primary-action" type="submit">Send queue</button>
+            <button class="ghost-button" data-booking-next-queue="${escapeHtml(booking.id)}" type="button">Next number</button>
+          </div>
+          <div class="button-row">
+            <button class="success-action" data-booking-complete="${escapeHtml(booking.id)}" type="button">Complete</button>
+            <button class="danger-action" data-booking-cancel="${escapeHtml(booking.id)}" type="button">Cancel booking</button>
+          </div>
+        </form>
+      `;
     const card = document.createElement("article");
     card.className = `booking-card booking-${booking.status}`;
     card.innerHTML = `
@@ -1503,19 +1650,21 @@ function renderOwnerBookings() {
         </div>
         <div class="queue-pill">${escapeHtml(bookingStatusText(booking))}</div>
       </div>
-      <p>${escapeHtml(booking.category)} - ${escapeHtml(booking.serviceName)} - ${formatPrice(booking.price)}</p>
-      ${booking.note ? `<p>${escapeHtml(booking.note)}</p>` : ""}
-      <form class="booking-queue-form" data-booking-queue-form="${escapeHtml(booking.id)}">
-        <label>
-          Queue number
-          <input data-booking-queue-number type="text" value="${escapeHtml(booking.queueNumber)}" placeholder="A01" />
-        </label>
-        <div class="button-row">
-          <button class="primary-action" type="submit">Send queue</button>
-          <button class="success-action" data-booking-complete="${escapeHtml(booking.id)}" type="button">Complete</button>
-        </div>
-        <button class="ghost-button full-width" data-booking-cancel="${escapeHtml(booking.id)}" type="button">Cancel booking</button>
-      </form>
+      <div class="booking-card-details">
+        <span>${escapeHtml(booking.category)} - ${escapeHtml(booking.serviceName)}</span>
+        <span>${formatPrice(booking.price)}</span>
+        <span>${escapeHtml(displayedDate)}</span>
+      </div>
+      <div class="booking-card-details">
+        <span>${escapeHtml(customerWhatsappStatus)}</span>
+        <span>Updated ${escapeHtml(booking.updatedAt || booking.date || "today")}</span>
+        <span>${escapeHtml(booking.queueNumber ? `Queue ${booking.queueNumber}` : "No queue number yet")}</span>
+      </div>
+      ${noteHtml}
+      <div class="booking-card-actions">
+        ${controls}
+        ${bookingContactLinks(booking)}
+      </div>
     `;
     elements.ownerBookingList.append(card);
   });
@@ -1780,7 +1929,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "installhide1",
+    backupVersion: "queuepro1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3040,6 +3189,12 @@ elements.ownerBookingList.addEventListener("submit", (event) => {
 });
 elements.ownerBookingList.addEventListener("click", (event) => {
   if (!ownerUnlocked) return;
+  const nextQueueButton = event.target.closest("[data-booking-next-queue]");
+  if (nextQueueButton) {
+    const booking = state.bookings.find((item) => item.id === nextQueueButton.dataset.bookingNextQueue);
+    if (booking) updateBookingQueue(booking.id, nextBookingQueueNumber(booking));
+    return;
+  }
   const completeButton = event.target.closest("[data-booking-complete]");
   if (completeButton) {
     updateBookingStatus(completeButton.dataset.bookingComplete, "completed");
@@ -3048,7 +3203,22 @@ elements.ownerBookingList.addEventListener("click", (event) => {
   const cancelButton = event.target.closest("[data-booking-cancel]");
   if (cancelButton) {
     updateBookingStatus(cancelButton.dataset.bookingCancel, "cancelled");
+    return;
   }
+  const reopenButton = event.target.closest("[data-booking-reopen]");
+  if (reopenButton) {
+    const booking = state.bookings.find((item) => item.id === reopenButton.dataset.bookingReopen);
+    if (booking) updateBookingStatus(booking.id, booking.queueNumber ? "queued" : "pending");
+  }
+});
+elements.ownerBookingSearch.addEventListener("input", renderOwnerBookings);
+elements.ownerBookingFilter.addEventListener("change", renderOwnerBookings);
+elements.ownerBookingDate.addEventListener("change", renderOwnerBookings);
+elements.ownerBookingClearButton.addEventListener("click", () => {
+  elements.ownerBookingSearch.value = "";
+  elements.ownerBookingFilter.value = "active";
+  elements.ownerBookingDate.value = "";
+  renderOwnerBookings();
 });
 elements.ownerProductSelect.addEventListener("change", renderOwnerMenuEditor);
 elements.ownerProductForm.addEventListener("submit", saveOwnerProduct);
@@ -3306,7 +3476,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=installhide1");
+    navigator.serviceWorker.register("sw.js?v=queuepro1");
   });
 }
 
