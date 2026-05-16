@@ -13,7 +13,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=syncfix1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerbuttons1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -67,6 +67,7 @@ let sharedSaveTimer = null;
 
 const elements = {
   activityList: document.querySelector("#activityList"),
+  activityPanel: document.querySelector("#activity"),
   aboutModeButton: document.querySelector("#aboutModeButton"),
   aboutView: document.querySelector("#aboutView"),
   bookingAlert: document.querySelector("#bookingAlert"),
@@ -184,6 +185,8 @@ const elements = {
   ownerCustomerSearch: document.querySelector("#ownerCustomerSearch"),
   ownerCustomerSearchButton: document.querySelector("#ownerCustomerSearchButton"),
   ownerCustomerSelect: document.querySelector("#ownerCustomerSelect"),
+  ownerCustomerBookPanel: document.querySelector("#ownerCustomerBookPanel"),
+  ownerDrawPanel: document.querySelector("#ownerDrawPanel"),
   ownerFeedbackPanel: document.querySelector("#ownerFeedbackPanel"),
   ownerForgetButton: document.querySelector("#ownerForgetButton"),
   ownerLockButton: document.querySelector("#ownerLockButton"),
@@ -1252,7 +1255,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "syncfix1");
+  url.searchParams.set("v", "ownerbuttons1");
   return url.href;
 }
 
@@ -1997,7 +2000,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "syncfix1",
+    backupVersion: "ownerbuttons1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3111,6 +3114,10 @@ function setupOwnerAccordions() {
       toggle.textContent = collapsed ? "Open" : "Close";
       toggle.setAttribute("aria-expanded", String(!collapsed));
     });
+    header.addEventListener("click", (event) => {
+      if (event.target.closest("button, input, select, textarea, a")) return;
+      toggle.click();
+    });
 
     header.append(toggle);
     panel.append(content);
@@ -3253,6 +3260,14 @@ elements.ownerView.addEventListener("click", (event) => {
     bookings: elements.ownerBookingsPanel,
     manage: elements.ownerManagePanel,
     feedback: elements.ownerFeedbackPanel,
+    addCustomer: elements.ownerAddCustomerPanel,
+    notice: elements.ownerNoticePanel,
+    menuEdit: elements.ownerMenuPanel,
+    whatsapp: elements.ownerWhatsAppPanel,
+    backup: elements.ownerBackupPanel,
+    customers: elements.ownerCustomerBookPanel,
+    draw: elements.ownerDrawPanel,
+    activity: elements.activityPanel,
   };
   openOwnerPanel(panels[button.dataset.ownerJump]);
 });
@@ -3571,7 +3586,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=syncfix1");
+    navigator.serviceWorker.register("sw.js?v=ownerbuttons1");
   });
 }
 

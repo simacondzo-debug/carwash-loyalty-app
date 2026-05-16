@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=syncfix1" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=syncfix1" />
-    <link rel="icon" href="icons/icon-192.png?v=syncfix1" />
-    <link rel="stylesheet" href="styles.css?v=syncfix1" />
+    <link rel="manifest" href="manifest.webmanifest?v=ownerbuttons1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=ownerbuttons1" />
+    <link rel="icon" href="icons/icon-192.png?v=ownerbuttons1" />
+    <link rel="stylesheet" href="styles.css?v=ownerbuttons1" />
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=syncfix1" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=ownerbuttons1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -571,6 +571,38 @@
                 <span>Read</span>
                 <strong>Feedback</strong>
               </button>
+              <button class="owner-action-card" data-owner-jump="addCustomer" type="button">
+                <span>Add</span>
+                <strong>Customer</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="notice" type="button">
+                <span>Message</span>
+                <strong>Customers</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="menuEdit" type="button">
+                <span>Edit</span>
+                <strong>Menu</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="whatsapp" type="button">
+                <span>Send</span>
+                <strong>WhatsApp</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="backup" type="button">
+                <span>Export</span>
+                <strong>Backup</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="customers" type="button">
+                <span>View</span>
+                <strong>Customer book</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="draw" type="button">
+                <span>Pick</span>
+                <strong>Lucky draw</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="activity" type="button">
+                <span>Review</span>
+                <strong>Wash log</strong>
+              </button>
             </div>
           </section>
 
@@ -911,7 +943,7 @@
             <p class="form-alert" id="ownerBackupAlert" role="status"></p>
           </section>
 
-          <section class="panel is-hidden" data-owner-secure>
+          <section class="panel is-hidden" id="ownerCustomerBookPanel" data-owner-secure>
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Owner</p>
@@ -928,7 +960,7 @@
             <div class="customer-list" id="customerList"></div>
           </section>
 
-          <section class="panel draw-panel is-hidden" data-owner-secure>
+          <section class="panel draw-panel is-hidden" id="ownerDrawPanel" data-owner-secure>
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Monthly Competition</p>
@@ -1016,6 +1048,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=syncfix1"></script>
+    <script src="app.js?v=ownerbuttons1"></script>
   </body>
 </html>

@@ -477,7 +477,7 @@ main {
 .owner-quick-actions {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 10px;
 }
 
@@ -505,6 +505,12 @@ main {
   background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
   transform: translateY(-1px);
+}
+
+.owner-action-card:focus-visible,
+.owner-toggle-button:focus-visible {
+  outline: 3px solid rgba(246, 183, 60, 0.78);
+  outline-offset: 2px;
 }
 
 .panel {
@@ -537,6 +543,38 @@ main {
   margin-bottom: 0;
 }
 
+.owner-dashboard .owner-tool-panel .panel-header {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+  background:
+    linear-gradient(110deg, rgba(16, 32, 39, 0.98), rgba(8, 127, 140, 0.86) 58%, rgba(216, 93, 74, 0.7)),
+    linear-gradient(90deg, var(--accent), var(--green), var(--sun));
+  color: white;
+  cursor: pointer;
+  min-height: 96px;
+}
+
+.owner-dashboard .owner-tool-panel .panel-header .eyebrow {
+  color: #c7fbff;
+}
+
+.owner-dashboard .owner-tool-panel .panel-header h2 {
+  color: white;
+  font-size: 1.45rem;
+}
+
+.owner-dashboard .owner-tool-panel.owner-collapsed {
+  background: transparent;
+}
+
+.owner-dashboard .owner-tool-panel.owner-collapsed .panel-header {
+  border-radius: 8px;
+}
+
+.owner-dashboard .owner-tool-panel:not(.owner-collapsed) .panel-header {
+  border-radius: 8px 8px 0 0;
+}
+
 .owner-panel-content {
   margin-top: 16px;
 }
@@ -561,13 +599,19 @@ main {
 }
 
 .owner-dashboard .owner-toggle-button {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
+  min-width: 98px;
 }
 
 .owner-toggle-button:hover {
   box-shadow: 0 8px 16px rgba(16, 32, 39, 0.09);
+}
+
+.owner-dashboard .owner-toggle-button:hover {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
 }
 
 .owner-dashboard .owner-tool-panel:not(.owner-collapsed) {
