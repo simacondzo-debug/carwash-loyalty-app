@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=queuepro1" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=queuepro1" />
-    <link rel="icon" href="icons/icon-192.png?v=queuepro1" />
-    <link rel="stylesheet" href="styles.css?v=queuepro1" />
+    <link rel="manifest" href="manifest.webmanifest?v=ownerdash1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=ownerdash1" />
+    <link rel="icon" href="icons/icon-192.png?v=ownerdash1" />
+    <link rel="stylesheet" href="styles.css?v=ownerdash1" />
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=queuepro1" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=ownerdash1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -72,28 +72,28 @@
           <button class="mode-tab is-hidden" id="ownerModeButton" type="button" hidden>Owner verify</button>
         </section>
 
-        <section class="metrics is-hidden" id="ownerMetrics" data-owner-secure aria-label="Owner loyalty summary">
-          <article>
+        <section class="metrics owner-metrics is-hidden" id="ownerMetrics" data-owner-secure aria-label="Owner loyalty summary">
+          <article class="metric-members">
             <span>Members</span>
             <strong id="metricCustomers">0</strong>
           </article>
-          <article>
+          <article class="metric-bookings">
             <span>Pending bookings</span>
             <strong id="metricBookings">0</strong>
           </article>
-          <article>
+          <article class="metric-washes">
             <span>Paid washes</span>
             <strong id="metricPaidWashes">0</strong>
           </article>
-          <article>
+          <article class="metric-ready">
             <span>Free ready</span>
             <strong id="metricReady">0</strong>
           </article>
-          <article>
+          <article class="metric-redeemed">
             <span>Free redeemed</span>
             <strong id="metricRedeemed">0</strong>
           </article>
-          <article>
+          <article class="metric-draw">
             <span>Draw entries</span>
             <strong id="metricDrawEntries">0</strong>
           </article>
@@ -544,7 +544,36 @@
           </section>
         </section>
 
-        <section class="view-grid is-hidden" id="ownerView">
+        <section class="view-grid owner-dashboard is-hidden" id="ownerView">
+          <section class="owner-command-panel is-hidden" id="ownerCommandPanel" data-owner-secure>
+            <div>
+              <p class="eyebrow">Owner dashboard</p>
+              <h2>Today at THE CARWASH</h2>
+            </div>
+            <div class="owner-command-meta">
+              <span>Private owner area</span>
+              <strong id="ownerTodayLabel">Today</strong>
+            </div>
+            <div class="owner-quick-actions" aria-label="Owner shortcuts">
+              <button class="owner-action-card" data-owner-jump="verify" type="button">
+                <span>Verify</span>
+                <strong>Wash</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="bookings" type="button">
+                <span>Queue</span>
+                <strong>Bookings</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="manage" type="button">
+                <span>Manage</span>
+                <strong>Customers</strong>
+              </button>
+              <button class="owner-action-card" data-owner-jump="feedback" type="button">
+                <span>Read</span>
+                <strong>Feedback</strong>
+              </button>
+            </div>
+          </section>
+
           <section class="panel" id="ownerLockPanel">
             <div class="panel-header">
               <div>
@@ -987,6 +1016,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=queuepro1"></script>
+    <script src="app.js?v=ownerdash1"></script>
   </body>
 </html>

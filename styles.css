@@ -316,6 +316,16 @@ main {
   margin-bottom: 18px;
 }
 
+.owner-metrics {
+  border: 1px solid rgba(8, 127, 140, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(16, 32, 39, 0.96), rgba(8, 127, 140, 0.9) 58%, rgba(47, 143, 70, 0.78)),
+    linear-gradient(90deg, var(--accent), var(--sun), var(--coral));
+  box-shadow: var(--shadow);
+  padding: 14px;
+}
+
 .metrics article,
 .panel {
   border: 1px solid var(--line);
@@ -325,8 +335,37 @@ main {
 }
 
 .metrics article {
+  position: relative;
+  overflow: hidden;
   padding: 16px;
   background: linear-gradient(180deg, #ffffff, #f6fbfc);
+}
+
+.owner-metrics article {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.owner-metrics article::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--accent);
+}
+
+.owner-metrics .metric-bookings::before,
+.owner-metrics .metric-draw::before {
+  background: var(--sun);
+}
+
+.owner-metrics .metric-ready::before,
+.owner-metrics .metric-washes::before {
+  background: var(--green);
+}
+
+.owner-metrics .metric-redeemed::before {
+  background: var(--coral);
 }
 
 .metrics span,
@@ -349,6 +388,125 @@ main {
   gap: 18px;
 }
 
+.owner-dashboard {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
+}
+
+.owner-command-panel,
+.owner-dashboard > .panel,
+.owner-dashboard + .lower-panel {
+  grid-column: 1 / -1;
+}
+
+.owner-dashboard > .panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.owner-dashboard > .panel:not(#ownerLockPanel) {
+  border-color: rgba(8, 127, 140, 0.15);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.owner-dashboard #ownerLockPanel {
+  max-width: 760px;
+  justify-self: center;
+  padding: 22px;
+}
+
+.owner-dashboard #ownerLockPanel .panel-header {
+  background: transparent;
+  border-bottom: 0;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+.owner-command-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(110deg, rgba(16, 32, 39, 0.98), rgba(8, 127, 140, 0.88) 54%, rgba(216, 93, 74, 0.72)),
+    linear-gradient(90deg, var(--accent), var(--green), var(--sun));
+  color: white;
+  box-shadow: var(--shadow);
+  padding: clamp(18px, 3vw, 26px);
+}
+
+.owner-command-panel h2,
+.owner-command-panel p {
+  margin: 0;
+}
+
+.owner-command-panel h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1;
+}
+
+.owner-command-panel .eyebrow {
+  color: #c7fbff;
+}
+
+.owner-command-meta {
+  justify-self: end;
+  display: grid;
+  min-width: 190px;
+  gap: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 12px 14px;
+}
+
+.owner-command-meta span,
+.owner-action-card span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.owner-command-meta strong {
+  font-size: 1.05rem;
+}
+
+.owner-quick-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.owner-action-card {
+  display: grid;
+  min-height: 82px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.13);
+  color: white;
+  padding: 13px;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.owner-action-card strong {
+  align-self: end;
+  font-size: 1.05rem;
+}
+
+.owner-action-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+
 .panel {
   min-width: 0;
   padding: 22px;
@@ -366,12 +524,26 @@ main {
   margin-bottom: 16px;
 }
 
+.owner-dashboard .panel-header {
+  border-bottom: 1px solid rgba(217, 232, 238, 0.78);
+  background:
+    linear-gradient(90deg, rgba(221, 245, 246, 0.92), rgba(255, 250, 240, 0.76)),
+    #ffffff;
+  margin-bottom: 0;
+  padding: 17px 20px;
+}
+
 .owner-tool-panel .panel-header {
   margin-bottom: 0;
 }
 
 .owner-panel-content {
   margin-top: 16px;
+}
+
+.owner-dashboard .owner-panel-content {
+  margin-top: 0;
+  padding: 18px 20px 20px;
 }
 
 .owner-collapsed .owner-panel-content {
@@ -388,8 +560,22 @@ main {
   padding: 8px 12px;
 }
 
+.owner-dashboard .owner-toggle-button {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #ffffff;
+}
+
 .owner-toggle-button:hover {
   box-shadow: 0 8px 16px rgba(16, 32, 39, 0.09);
+}
+
+.owner-dashboard .owner-tool-panel:not(.owner-collapsed) {
+  box-shadow: var(--shadow);
+}
+
+.owner-dashboard .owner-tool-panel.owner-collapsed {
+  box-shadow: 0 10px 24px rgba(16, 32, 39, 0.07);
 }
 
 .compact-header {
@@ -1663,8 +1849,14 @@ textarea {
   .booking-queue-tools,
   .booking-card-details,
   .booking-contact-row,
+  .owner-command-panel,
+  .owner-quick-actions,
   .contact-actions {
     grid-template-columns: 1fr;
+  }
+
+  .owner-command-meta {
+    justify-self: stretch;
   }
 
   .stamp-card {

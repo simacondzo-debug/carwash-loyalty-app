@@ -13,7 +13,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=queuepro1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerdash1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -202,6 +202,7 @@ const elements = {
   ownerProductSku: document.querySelector("#ownerProductSku"),
   ownerRemoveProductButton: document.querySelector("#ownerRemoveProductButton"),
   ownerSecurePanels: document.querySelectorAll("[data-owner-secure]"),
+  ownerTodayLabel: document.querySelector("#ownerTodayLabel"),
   ownerNote: document.querySelector("#ownerNote"),
   ownerPlate: document.querySelector("#ownerPlate"),
   ownerService: document.querySelector("#ownerService"),
@@ -980,6 +981,7 @@ function render() {
 }
 
 function renderMetrics() {
+  elements.ownerTodayLabel.textContent = displayDate(today());
   const paidWashes = state.customers.reduce(
     (sum, customer) => sum + customer.lifetimePaidWashes,
     0,
@@ -1188,7 +1190,7 @@ function customerAppLink(customer = null) {
   if (customer && normalizePhone(customer.phone)) {
     url.searchParams.set("customer", normalizePhone(customer.phone));
   }
-  url.searchParams.set("v", "queuepro1");
+  url.searchParams.set("v", "ownerdash1");
   return url.href;
 }
 
@@ -1929,7 +1931,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "queuepro1",
+    backupVersion: "ownerdash1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3164,6 +3166,17 @@ elements.rulesModeButton.addEventListener("click", () => setMode("rules"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
 elements.feedbackModeButton.addEventListener("click", () => setMode("feedback"));
 elements.ownerModeButton.addEventListener("click", () => setMode("owner"));
+elements.ownerView.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-owner-jump]");
+  if (!button || !ownerUnlocked) return;
+  const panels = {
+    verify: elements.ownerVerifyPanel,
+    bookings: elements.ownerBookingsPanel,
+    manage: elements.ownerManagePanel,
+    feedback: elements.ownerFeedbackPanel,
+  };
+  openOwnerPanel(panels[button.dataset.ownerJump]);
+});
 window.addEventListener("online", updateOfflineBanner);
 window.addEventListener("offline", updateOfflineBanner);
 elements.menuCategoryFilter.addEventListener("change", renderMenu);
@@ -3476,7 +3489,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=queuepro1");
+    navigator.serviceWorker.register("sw.js?v=ownerdash1");
   });
 }
 
