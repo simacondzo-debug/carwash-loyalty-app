@@ -53,6 +53,31 @@ function normalizePhone(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function customerPhoneKey(value) {
+  let digits = normalizePhone(value);
+  if (!digits) return "";
+  if (digits.startsWith("0027")) digits = digits.slice(2);
+  if (digits.startsWith("27") && digits.length >= 11) return digits;
+  if (digits.startsWith("0") && digits.length >= 10) return `27${digits.slice(1)}`;
+  return digits;
+}
+
+function normalizePlate(value) {
+  return String(value || "").trim().toUpperCase().replace(/\s+/g, " ");
+}
+
+function normalizeCustomerName(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function customerIdentityKey(customer = {}) {
+  const name = normalizeCustomerName(customer.name);
+  if (!name) return "";
+  const vehicles = Array.isArray(customer.vehicles) ? customer.vehicles : [];
+  const plate = [...vehicles, customer.plate].map(normalizePlate).find(Boolean);
+  return plate ? `${name}:${plate}` : name;
+}
+
 function itemTime(value = {}) {
   const parsed = Date.parse(
     value.updatedAt || value.replyDate || value.date || value.lastWash || value.joined || "",
@@ -87,7 +112,7 @@ function mergeState(currentState, incomingState) {
     ...current,
     ...incoming,
     customers: mergeByKey(current.customers, incoming.customers, (customer) =>
-      normalizePhone(customer.phone) || customer.id,
+      customerPhoneKey(customer.phone) || customerIdentityKey(customer) || customer.id,
     ),
     activities: mergeByKey(current.activities, incoming.activities),
     bookings: mergeByKey(current.bookings, incoming.bookings),

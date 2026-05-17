@@ -14,7 +14,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=launchfinal1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=duplicatefix1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -358,7 +358,7 @@ function mergeLoadedState(localState, remoteState) {
   return {
     ...remote,
     customers: mergeByKey(remote.customers, local.customers, (customer) =>
-      normalizePhone(customer.phone) || customer.id,
+      customerPhoneKey(customer.phone) || customerIdentityKey(customer) || customer.id,
     ),
     activities: mergeByKey(remote.activities, local.activities),
     bookings: mergeByKey(remote.bookings, local.bookings),
@@ -467,9 +467,9 @@ function activateLinkedCustomer() {
   const params = new URLSearchParams(window.location.search);
   const customerParam = params.get("customer");
   if (!customerParam) return;
-  const normalized = normalizePhone(customerParam);
+  const phoneKey = customerPhoneKey(customerParam);
   const customer = state.customers.find(
-    (item) => item.id === customerParam || normalizePhone(item.phone) === normalized,
+    (item) => item.id === customerParam || customerPhoneKey(item.phone) === phoneKey,
   );
   if (customer) {
     if (params.get("welcome") === "owner") {
@@ -776,8 +776,28 @@ function normalizePhone(value) {
   return String(value).replace(/\D/g, "");
 }
 
+function customerPhoneKey(value) {
+  let digits = normalizePhone(value);
+  if (!digits) return "";
+  if (digits.startsWith("0027")) digits = digits.slice(2);
+  if (digits.startsWith("27") && digits.length >= 11) return digits;
+  if (digits.startsWith("0") && digits.length >= 10) return `27${digits.slice(1)}`;
+  return digits;
+}
+
+function normalizeCustomerName(value) {
+  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function customerIdentityKey(customer) {
+  const name = normalizeCustomerName(customer.name);
+  if (!name) return "";
+  const plate = primaryPlate(customer) || normalizeVehicleList(customer.vehicles, customer.plate)[0] || "";
+  return plate ? `${name}:${plate}` : name;
+}
+
 function whatsappNumber(value) {
-  const digits = normalizePhone(value);
+  const digits = customerPhoneKey(value);
   if (!digits) return "";
   if (digits.startsWith("27")) return digits;
   if (digits.startsWith("0")) return `27${digits.slice(1)}`;
@@ -970,9 +990,27 @@ function activeCustomer() {
 }
 
 function findCustomerByPhone(phone) {
-  const normalized = normalizePhone(phone);
-  if (!normalized) return null;
-  return state.customers.find((customer) => normalizePhone(customer.phone) === normalized);
+  const phoneKey = customerPhoneKey(phone);
+  if (!phoneKey) return null;
+  return state.customers.find((customer) => customerPhoneKey(customer.phone) === phoneKey) || null;
+}
+
+function findExistingCustomer({ name = "", phone = "", plate = "" }, excludeId = "") {
+  const phoneMatch = findCustomerByPhone(phone);
+  if (phoneMatch && phoneMatch.id !== excludeId) return phoneMatch;
+
+  const nameKey = normalizeCustomerName(name);
+  if (!nameKey) return null;
+
+  const plateKey = normalizePlate(plate);
+  return (
+    state.customers.find((customer) => {
+      if (customer.id === excludeId || normalizeCustomerName(customer.name) !== nameKey) return false;
+      const customerVehicles = normalizeVehicleList(customer.vehicles, customer.plate);
+      if (plateKey) return customerVehicles.includes(plateKey);
+      return !customerPhoneKey(customer.phone);
+    }) || null
+  );
 }
 
 function customerSearchText(customer) {
@@ -1258,6 +1296,10 @@ function appIsStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
+function appInstallDismissedOrInstalled() {
+  return appIsStandalone() || localStorage.getItem(INSTALL_HIDDEN_KEY) === "1";
+}
+
 function hideInstallButton(persist = false) {
   elements.installButton.hidden = true;
   elements.installButton.classList.add("is-hidden");
@@ -1266,7 +1308,7 @@ function hideInstallButton(persist = false) {
 }
 
 function updateInstallButton() {
-  if (appIsStandalone() || localStorage.getItem(INSTALL_HIDDEN_KEY) === "1") {
+  if (appInstallDismissedOrInstalled()) {
     hideInstallButton(false);
     return;
   }
@@ -1294,12 +1336,12 @@ function customerAppLink(customer = null, options = {}) {
   url.hash = "";
   url.search = "";
   if (customer) {
-    url.searchParams.set("customer", normalizePhone(customer.phone) || customer.id);
+    url.searchParams.set("customer", customerPhoneKey(customer.phone) || customer.id);
     if (options.ownerWelcome ?? customer.ownerAdded) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "launchfinal1");
+  url.searchParams.set("v", "duplicatefix1");
   return url.href;
 }
 
@@ -1388,9 +1430,9 @@ function prefillBookingForm(productId = "") {
 
 function customerBookings(customer = activeCustomer()) {
   if (!customer) return [];
-  const phone = normalizePhone(customer.phone);
+  const phone = customerPhoneKey(customer.phone);
   return state.bookings
-    .filter((booking) => booking.customerId === customer.id || normalizePhone(booking.phone) === phone)
+    .filter((booking) => booking.customerId === customer.id || (phone && customerPhoneKey(booking.phone) === phone))
     .sort((a, b) => String(b.updatedAt || b.date).localeCompare(String(a.updatedAt || a.date)));
 }
 
@@ -1407,9 +1449,9 @@ function bookingStatusRank(status) {
 }
 
 function bookingCustomer(booking) {
-  const phone = normalizePhone(booking.phone);
+  const phone = customerPhoneKey(booking.phone);
   return state.customers.find(
-    (customer) => customer.id === booking.customerId || normalizePhone(customer.phone) === phone,
+    (customer) => customer.id === booking.customerId || (phone && customerPhoneKey(customer.phone) === phone),
   );
 }
 
@@ -1577,13 +1619,13 @@ function viewBookingAlert() {
 
 function alertableStampActivities(customer = activeCustomer()) {
   if (!customer) return [];
-  const phone = normalizePhone(customer.phone);
+  const phone = customerPhoneKey(customer.phone);
   return [...state.activities]
     .filter((activity) => {
       const sameCustomer =
         activity.customerId === customer.id ||
         (!activity.customerId && activity.customerName === customer.name) ||
-        (activity.phone && normalizePhone(activity.phone) === phone);
+        (phone && activity.phone && customerPhoneKey(activity.phone) === phone);
       return sameCustomer && ["paid", "free"].includes(activity.type) && !activity.revoked;
     })
     .sort((a, b) => String(b.updatedAt || b.date).localeCompare(String(a.updatedAt || a.date)));
@@ -1645,7 +1687,7 @@ function viewStampAlert() {
 }
 
 function ensureBookingCustomer({ name, phone, plate }) {
-  let customer = findCustomerByPhone(phone);
+  let customer = findExistingCustomer({ name, phone, plate });
   if (!customer) {
     customer = {
       id: crypto.randomUUID(),
@@ -1666,7 +1708,8 @@ function ensureBookingCustomer({ name, phone, plate }) {
     state.customers.push(customer);
   } else {
     customer.name = name || customer.name;
-    if (addVehicleToCustomer(customer, plate) || name) touchCustomer(customer);
+    if (!customer.phone && phone) customer.phone = phone;
+    if (addVehicleToCustomer(customer, plate) || name || phone) touchCustomer(customer);
   }
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   return customer;
@@ -1679,7 +1722,7 @@ function addOwnerCustomer(event) {
   const name = elements.ownerAddCustomerName.value.trim();
   const phone = elements.ownerAddCustomerPhone.value.trim();
   const plate = normalizePlate(elements.ownerAddCustomerPlate.value);
-  const normalizedPhone = normalizePhone(phone);
+  const phoneKey = customerPhoneKey(phone);
 
   if (!name) {
     setOwnerAddCustomerAlert("Customer name is required.");
@@ -1687,9 +1730,14 @@ function addOwnerCustomer(event) {
     return;
   }
 
-  if (normalizedPhone && findCustomerByPhone(phone)) {
-    setOwnerAddCustomerAlert("A customer with this phone number already exists.");
-    elements.ownerAddCustomerInvite.classList.add("is-hidden");
+  const existingCustomer = findExistingCustomer({ name, phone, plate });
+  if (existingCustomer) {
+    render();
+    selectOwnerCustomer(existingCustomer, plate);
+    renderOwnerCustomerInvite(existingCustomer);
+    setOwnerAddCustomerAlert(
+      `${existingCustomer.name} is already on the system. Customer code: ${customerCode(existingCustomer)}. No duplicate was created.`,
+    );
     return;
   }
 
@@ -1697,14 +1745,14 @@ function addOwnerCustomer(event) {
     id: crypto.randomUUID(),
     name,
     phone,
-    manualCode: normalizedPhone ? "" : nextManualCustomerCode(),
+    manualCode: phoneKey ? "" : nextManualCustomerCode(),
     plate,
     vehicles: normalizeVehicleList([], plate),
     stampBalance: 0,
     lifetimePaidWashes: 0,
     freeWashesRedeemed: 0,
     facebookFollowed: false,
-    whatsappOptIn: Boolean(normalizedPhone && elements.ownerAddWhatsappOptIn.checked),
+    whatsappOptIn: Boolean(phoneKey && elements.ownerAddWhatsappOptIn.checked),
     lastWash: today(),
     joined: today(),
     updatedAt: nowIso(),
@@ -2115,7 +2163,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "launchfinal1",
+    backupVersion: "duplicatefix1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -2188,12 +2236,21 @@ function renderCustomerCard() {
   elements.customerWelcomeCard.hidden = !customer.ownerAdded;
   elements.customerWelcomeCard.classList.toggle("owner-added-welcome", Boolean(customer.ownerAdded));
   if (customer.ownerAdded) {
+    const installed = appInstallDismissedOrInstalled();
     elements.customerWelcomeCard.innerHTML = `
       <strong>Welcome, ${escapeHtml(customer.name)}. Your loyalty card is ready.</strong>
-      <span>The owner has already created your THE CARWASH card. Download the app to your phone so you can track washes, book a wash, and see owner replies.</span>
+      <span>${
+        installed
+          ? "You are already using your THE CARWASH app on this device. You can track washes, book a wash, and see owner replies here."
+          : "The owner has already created your THE CARWASH card. Download the app to your phone so you can track washes, book a wash, and see owner replies."
+      }</span>
       <span>Your customer code is ${escapeHtml(customerCode(customer))}.</span>
       <div class="button-row">
-        <button class="primary-action" data-customer-install-app type="button">Download app</button>
+        ${
+          installed
+            ? ""
+            : '<button class="primary-action" data-customer-install-app type="button">Download app</button>'
+        }
         <button class="ghost-button" data-customer-book-wash type="button">Book a wash</button>
       </div>
     `;
@@ -2686,8 +2743,8 @@ function renderCustomerResponses() {
   elements.customerResponseList.innerHTML = "";
   elements.responseLookupPhone.value = responseLookupPhone;
 
-  const normalizedLookup = normalizePhone(responseLookupPhone);
-  if (!normalizedLookup) {
+  const lookupPhoneKey = customerPhoneKey(responseLookupPhone);
+  if (!lookupPhoneKey) {
     const empty = document.createElement("div");
     empty.className = "empty-state compact-empty";
     empty.innerHTML = "<strong>No phone number entered</strong><span>Enter your phone number to view owner responses.</span>";
@@ -2696,7 +2753,7 @@ function renderCustomerResponses() {
   }
 
   const matches = state.feedback
-    .filter((item) => normalizePhone(item.phone) === normalizedLookup)
+    .filter((item) => customerPhoneKey(item.phone) === lookupPhoneKey)
     .slice(0, 10);
 
   if (!matches.length) {
@@ -2728,10 +2785,10 @@ function renderCustomerResponses() {
 
 function customerReplyItems(customer = activeCustomer()) {
   if (!customer) return [];
-  const customerPhone = normalizePhone(customer.phone);
+  const customerPhone = customerPhoneKey(customer.phone);
   if (!customerPhone) return [];
   return state.feedback
-    .filter((item) => normalizePhone(item.phone) === customerPhone)
+    .filter((item) => customerPhoneKey(item.phone) === customerPhone)
     .filter((item) => String(item.ownerReply || "").trim())
     .sort((a, b) => (b.replyDate || b.date).localeCompare(a.replyDate || a.date))
     .slice(0, 10);
@@ -2829,27 +2886,27 @@ function updateCustomerFromOwner(customer) {
   const name = elements.manageCustomerName.value.trim();
   const phone = elements.manageCustomerPhone.value.trim();
   const newVehicle = normalizePlate(elements.manageNewVehicle.value);
-  const normalizedPhone = normalizePhone(phone);
+  const phoneKey = customerPhoneKey(phone);
 
   if (!name) {
     setManageAlert("Customer name is required.");
     return false;
   }
 
-  const duplicatePhone = normalizedPhone
-    ? state.customers.find(
-        (item) => item.id !== customer.id && normalizePhone(item.phone) === normalizedPhone,
-      )
+  const duplicateCustomer = findExistingCustomer({ name, phone, plate: newVehicle }, customer.id);
+  const duplicatePhone = phoneKey
+    ? state.customers.find((item) => item.id !== customer.id && customerPhoneKey(item.phone) === phoneKey)
     : null;
-  if (duplicatePhone) {
-    setManageAlert("Another customer already uses that phone number.");
+  if (duplicatePhone || duplicateCustomer) {
+    const duplicate = duplicatePhone || duplicateCustomer;
+    setManageAlert(`${duplicate.name} is already on the system. Customer code: ${customerCode(duplicate)}.`);
     return false;
   }
 
   customer.name = name;
   customer.phone = phone;
-  customer.manualCode = normalizedPhone ? "" : customer.manualCode || nextManualCustomerCode();
-  customer.whatsappOptIn = Boolean(normalizedPhone && elements.manageWhatsappOptIn.checked);
+  customer.manualCode = phoneKey ? "" : customer.manualCode || nextManualCustomerCode();
+  customer.whatsappOptIn = Boolean(phoneKey && elements.manageWhatsappOptIn.checked);
   if (newVehicle) addVehicleToCustomer(customer, newVehicle);
   touchCustomer(customer);
 
@@ -3549,17 +3606,19 @@ elements.feedbackList.addEventListener("submit", (event) => {
 
 elements.customerForm.addEventListener("submit", (event) => {
   event.preventDefault();
+  const name = elements.customerName.value.trim();
   const phone = elements.customerPhone.value.trim();
-  let customer = findCustomerByPhone(phone);
+  const plate = normalizePlate(elements.customerPlate.value);
+  let customer = findExistingCustomer({ name, phone, plate });
   const isNewCustomer = !customer;
 
   if (!customer) {
     customer = {
       id: crypto.randomUUID(),
-      name: elements.customerName.value.trim(),
+      name,
       phone,
-      plate: normalizePlate(elements.customerPlate.value),
-      vehicles: normalizeVehicleList([], elements.customerPlate.value),
+      plate,
+      vehicles: normalizeVehicleList([], plate),
       stampBalance: 0,
       lifetimePaidWashes: 0,
       freeWashesRedeemed: 0,
@@ -3572,8 +3631,9 @@ elements.customerForm.addEventListener("submit", (event) => {
     };
     state.customers.push(customer);
   } else {
-    customer.name = elements.customerName.value.trim() || customer.name;
-    addVehicleToCustomer(customer, elements.customerPlate.value);
+    customer.name = name || customer.name;
+    if (!customer.phone && phone) customer.phone = phone;
+    addVehicleToCustomer(customer, plate);
     customer.whatsappOptIn = customer.whatsappOptIn || elements.customerWhatsappOptIn.checked;
     touchCustomer(customer);
   }
@@ -3747,7 +3807,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=launchfinal1");
+    navigator.serviceWorker.register("sw.js?v=duplicatefix1");
   });
 }
 
