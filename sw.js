@@ -1,12 +1,12 @@
-const CACHE_NAME = "the-carwash-pwa-v56";
+const CACHE_NAME = "the-carwash-pwa-v61";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=ownerbuttons1",
-  "./app.js?v=ownerbuttons1",
-  "./manifest.webmanifest?v=ownerbuttons1",
-  "./icons/icon-192.png?v=ownerbuttons1",
-  "./icons/icon-512.png?v=ownerbuttons1",
+  "./styles.css?v=stampcard1",
+  "./app.js?v=stampcard1",
+  "./manifest.webmanifest?v=stampcard1",
+  "./icons/icon-192.png?v=stampcard1",
+  "./icons/icon-512.png?v=stampcard1",
 ];
 
 self.addEventListener("install", (event) => {

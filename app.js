@@ -3,6 +3,7 @@ const ACTIVE_CUSTOMER_KEY = "the-carwash-at-shell-active-customer";
 const RESPONSE_LOOKUP_KEY = "the-carwash-at-shell-response-phone";
 const SEEN_REPLIES_KEY = "the-carwash-at-shell-seen-replies-v1";
 const SEEN_BOOKING_ALERTS_KEY = "the-carwash-at-shell-seen-booking-alerts-v1";
+const SEEN_STAMP_ALERTS_KEY = "the-carwash-seen-stamp-alerts-v1";
 const OWNER_SEEN_BOOKINGS_KEY = "the-carwash-at-shell-owner-seen-bookings-v1";
 const OWNER_SEEN_FEEDBACK_KEY = "the-carwash-at-shell-owner-seen-feedback-v1";
 const OWNER_CREDENTIAL_KEY = "the-carwash-at-shell-owner-credential-v1";
@@ -13,7 +14,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerbuttons1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=stampcard1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -54,6 +55,7 @@ let responseLookupPhone = localStorage.getItem(RESPONSE_LOOKUP_KEY) || "";
 let pendingReplyPopup = null;
 let pendingBookingAlert = null;
 let pendingFeedbackThanks = null;
+let pendingStampAlert = null;
 let pendingOwnerAlert = null;
 let deferredInstallPrompt = null;
 let menuItems = [];
@@ -239,6 +241,13 @@ const elements = {
   runDrawButton: document.querySelector("#runDrawButton"),
   searchInput: document.querySelector("#searchInput"),
   statusFilter: document.querySelector("#statusFilter"),
+  stampAlertCloseButton: document.querySelector("#stampAlertCloseButton"),
+  stampAlertModal: document.querySelector("#stampAlertModal"),
+  stampAlertModalCard: document.querySelector("#stampAlertModalCard"),
+  stampAlertModalMessage: document.querySelector("#stampAlertModalMessage"),
+  stampAlertModalMeta: document.querySelector("#stampAlertModalMeta"),
+  stampAlertModalTitle: document.querySelector("#stampAlertModalTitle"),
+  stampAlertViewButton: document.querySelector("#stampAlertViewButton"),
   whatsappAlertList: document.querySelector("#whatsappAlertList"),
   whatsappAlertSummary: document.querySelector("#whatsappAlertSummary"),
 };
@@ -284,6 +293,7 @@ function migrateState(loadedState) {
       manualCode: normalizeManualCodeForBrand(
         customer.manualCode || (hasPhone ? "" : `TCW-WALK-${String(index + 1).padStart(3, "0")}`),
       ),
+      ownerAdded: Boolean(customer.ownerAdded),
       facebookFollowed: Boolean(customer.facebookFollowed),
       lifetimePaidWashes: Number(customer.lifetimePaidWashes || 0),
       freeWashesRedeemed: Number(customer.freeWashesRedeemed || 0),
@@ -462,6 +472,12 @@ function activateLinkedCustomer() {
     (item) => item.id === customerParam || normalizePhone(item.phone) === normalized,
   );
   if (customer) {
+    if (params.get("welcome") === "owner") {
+      customer.ownerAdded = true;
+      touchCustomer(customer);
+      cacheStateLocally();
+      queueSharedStateSave();
+    }
     localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   }
 }
@@ -689,6 +705,19 @@ function saveSeenBookingAlerts(seenAlerts) {
   localStorage.setItem(SEEN_BOOKING_ALERTS_KEY, JSON.stringify([...seenAlerts]));
 }
 
+function readSeenStampAlerts() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SEEN_STAMP_ALERTS_KEY) || "[]");
+    return Array.isArray(saved) ? new Set(saved) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveSeenStampAlerts(seenAlerts) {
+  localStorage.setItem(SEEN_STAMP_ALERTS_KEY, JSON.stringify([...seenAlerts]));
+}
+
 function readSeenOwnerAlerts(storageKey) {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
@@ -708,6 +737,10 @@ function replyKey(item) {
 
 function bookingAlertKey(booking) {
   return `${booking.id}:${booking.status}:${booking.queueNumber || ""}`;
+}
+
+function stampAlertKey(activity) {
+  return `${activity.id}:${activity.type}:${activity.updatedAt || activity.date || ""}`;
 }
 
 function ownerBookingAlertKey(booking) {
@@ -730,6 +763,13 @@ function markBookingAlertSeen(booking) {
   const seenAlerts = readSeenBookingAlerts();
   seenAlerts.add(bookingAlertKey(booking));
   saveSeenBookingAlerts(seenAlerts);
+}
+
+function markStampAlertSeen(activity) {
+  if (!activity) return;
+  const seenAlerts = readSeenStampAlerts();
+  seenAlerts.add(stampAlertKey(activity));
+  saveSeenStampAlerts(seenAlerts);
 }
 
 function normalizePhone(value) {
@@ -1041,6 +1081,7 @@ function render() {
   renderCustomerResponses();
   renderCustomerReplyPreview();
   renderBookingConfirmationPopup();
+  renderStampAlertPopup();
   renderOwnerPopup();
   saveState();
 }
@@ -1248,19 +1289,22 @@ function setOwnerAddCustomerAlert(message) {
   elements.ownerAddCustomerAlert.classList.toggle("visible", Boolean(message));
 }
 
-function customerAppLink(customer = null) {
+function customerAppLink(customer = null, options = {}) {
   const url = new URL(window.location.href);
   url.hash = "";
   url.search = "";
-  if (customer && normalizePhone(customer.phone)) {
-    url.searchParams.set("customer", normalizePhone(customer.phone));
+  if (customer) {
+    url.searchParams.set("customer", normalizePhone(customer.phone) || customer.id);
+    if (options.ownerWelcome ?? customer.ownerAdded) {
+      url.searchParams.set("welcome", "owner");
+    }
   }
-  url.searchParams.set("v", "ownerbuttons1");
+  url.searchParams.set("v", "stampcard1");
   return url.href;
 }
 
 function customerAppInviteMessage(customer) {
-  return `Hi ${customer.name}, THE CARWASH has created your loyalty card. Open this link to install or open the app: ${customerAppLink(customer)}. Your customer code is ${customerCode(customer)}.`;
+  return `Hi ${customer.name}, welcome to THE CARWASH. Your loyalty card has been created for you. Open this link to download or open the app: ${customerAppLink(customer, { ownerWelcome: true })}. Your customer code is ${customerCode(customer)}.`;
 }
 
 function renderOwnerCustomerInvite(customer) {
@@ -1531,6 +1575,75 @@ function viewBookingAlert() {
   elements.customerBookingStatus.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+function alertableStampActivities(customer = activeCustomer()) {
+  if (!customer) return [];
+  const phone = normalizePhone(customer.phone);
+  return [...state.activities]
+    .filter((activity) => {
+      const sameCustomer =
+        activity.customerId === customer.id ||
+        (!activity.customerId && activity.customerName === customer.name) ||
+        (activity.phone && normalizePhone(activity.phone) === phone);
+      return sameCustomer && ["paid", "free"].includes(activity.type) && !activity.revoked;
+    })
+    .sort((a, b) => String(b.updatedAt || b.date).localeCompare(String(a.updatedAt || a.date)));
+}
+
+function renderStampAlertPopup() {
+  const customer = activeCustomer();
+  if (!customer || currentMode === "owner") return;
+  const anyModalOpen =
+    !elements.stampAlertModal.classList.contains("is-hidden") ||
+    !elements.bookingAlertModal.classList.contains("is-hidden") ||
+    !elements.replyModal.classList.contains("is-hidden");
+  if (anyModalOpen) return;
+
+  const seenAlerts = readSeenStampAlerts();
+  const activity = alertableStampActivities(customer).find((item) => !seenAlerts.has(stampAlertKey(item)));
+  if (!activity) return;
+
+  pendingStampAlert = activity;
+  markStampAlertSeen(activity);
+  const rawStampBalance = Number(activity.stampBalanceAfter ?? customer.stampBalance);
+  const safeStampBalance = Number.isFinite(rawStampBalance) ? rawStampBalance : Number(customer.stampBalance || 0);
+  const stampBalance =
+    activity.type === "free" ? 0 : Math.min(STAMPS_FOR_FREE_WASH, Math.max(0, safeStampBalance));
+  const title =
+    activity.type === "free" ? "Your free wash was redeemed" : "Your loyalty card was stamped";
+  const message =
+    activity.type === "free"
+      ? "Your card has reset and is ready for your next paid wash."
+      : stampBalance >= STAMPS_FOR_FREE_WASH
+        ? "Your card is full. Your next standard wash is free."
+        : `You now have ${stampBalance}/9 stamps. ${STAMPS_FOR_FREE_WASH - stampBalance} more paid wash${STAMPS_FOR_FREE_WASH - stampBalance === 1 ? "" : "es"} until your free wash.`;
+
+  elements.stampAlertModalTitle.textContent = title;
+  elements.stampAlertModalMessage.textContent = message;
+  elements.stampAlertModalMeta.textContent = `${activity.service || "Wash"} - ${activity.plate || "No plate"} - ${displayDate(activity.date)}`;
+  elements.stampAlertModalCard.innerHTML = `
+    <div>
+      <strong>${escapeHtml(customer.name)}</strong>
+      <span>${escapeHtml(customerCode(customer))}</span>
+    </div>
+    ${renderStampCard(stampBalance)}
+  `;
+  elements.stampAlertModal.classList.remove("is-hidden");
+}
+
+function closeStampAlert(markSeen = true) {
+  if (markSeen && pendingStampAlert) markStampAlertSeen(pendingStampAlert);
+  pendingStampAlert = null;
+  elements.stampAlertModal.classList.add("is-hidden");
+}
+
+function viewStampAlert() {
+  if (pendingStampAlert) markStampAlertSeen(pendingStampAlert);
+  pendingStampAlert = null;
+  elements.stampAlertModal.classList.add("is-hidden");
+  setMode("customer");
+  elements.customerCardDisplay.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 function ensureBookingCustomer({ name, phone, plate }) {
   let customer = findCustomerByPhone(phone);
   if (!customer) {
@@ -1548,6 +1661,7 @@ function ensureBookingCustomer({ name, phone, plate }) {
       lastWash: today(),
       joined: today(),
       updatedAt: nowIso(),
+      ownerAdded: false,
     };
     state.customers.push(customer);
   } else {
@@ -1594,6 +1708,7 @@ function addOwnerCustomer(event) {
     lastWash: today(),
     joined: today(),
     updatedAt: nowIso(),
+    ownerAdded: true,
   };
 
   state.customers.push(customer);
@@ -2000,7 +2115,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "ownerbuttons1",
+    backupVersion: "stampcard1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -2053,9 +2168,14 @@ function renderCustomerCard() {
   const hasCustomer = Boolean(customer);
   elements.customerForm.hidden = hasCustomer;
   elements.customerCardDisplay.hidden = !hasCustomer;
-  elements.customerWelcomeCard.hidden = hasCustomer;
 
   if (!customer) {
+    elements.customerWelcomeCard.hidden = false;
+    elements.customerWelcomeCard.classList.remove("owner-added-welcome");
+    elements.customerWelcomeCard.innerHTML = `
+      <strong>Welcome to THE CARWASH</strong>
+      <span>Add your name and phone number to start collecting verified washes.</span>
+    `;
     elements.customerCode.textContent = "TCW-0000";
     elements.customerCodeName.textContent = "Open a customer card to show this code.";
     elements.customerReplyPreview.classList.add("is-hidden");
@@ -2065,6 +2185,19 @@ function renderCustomerCard() {
 
   const ready = isReadyForFreeWash(customer);
   const draw = drawEligibility(customer);
+  elements.customerWelcomeCard.hidden = !customer.ownerAdded;
+  elements.customerWelcomeCard.classList.toggle("owner-added-welcome", Boolean(customer.ownerAdded));
+  if (customer.ownerAdded) {
+    elements.customerWelcomeCard.innerHTML = `
+      <strong>Welcome, ${escapeHtml(customer.name)}. Your loyalty card is ready.</strong>
+      <span>The owner has already created your THE CARWASH card. Download the app to your phone so you can track washes, book a wash, and see owner replies.</span>
+      <span>Your customer code is ${escapeHtml(customerCode(customer))}.</span>
+      <div class="button-row">
+        <button class="primary-action" data-customer-install-app type="button">Download app</button>
+        <button class="ghost-button" data-customer-book-wash type="button">Book a wash</button>
+      </div>
+    `;
+  }
   elements.customerCode.textContent = customerCode(customer);
   elements.customerCodeName.textContent = `${customer.name} - ${vehicleLabel(customer)}`;
   elements.customerCardDisplay.innerHTML = `
@@ -2304,19 +2437,30 @@ function competitionMessage(customer) {
   return `Hi ${customer.name}, THE CARWASH says you are entered in our monthly competition. Prize: ${DRAW_PRIZE}. Good luck!`;
 }
 
+function stampTextCard(customer) {
+  const stamped = Math.min(STAMPS_FOR_FREE_WASH, Math.max(0, Number(customer.stampBalance || 0)));
+  const slots = Array.from({ length: STAMPS_FOR_FREE_WASH }, (_, index) =>
+    index < stamped ? "[X]" : "[ ]",
+  ).join(" ");
+  const freeSlot = stamped >= STAMPS_FOR_FREE_WASH ? "[FREE READY]" : "[FREE]";
+  return `${slots} ${freeSlot}`;
+}
+
 function verifiedWashMessage(customer, details = {}) {
   const service = details.service || "wash";
   const plate = details.plate ? ` for ${details.plate}` : "";
+  const cardLink = customerAppLink(customer, { ownerWelcome: false });
+  const header = `THE CARWASH LOYALTY CARD\nCustomer: ${customer.name}\nCode: ${customerCode(customer)}\nWash stamped: ${service}${plate}`;
   if (isReadyForFreeWash(customer)) {
-    return `Hi ${customer.name}, THE CARWASH has verified your ${service}${plate}. Your loyalty card is now full at 9/9 stamps, so your next wash is free. Show customer code ${customerCode(customer)} when you arrive.`;
+    return `${header}\n\n${stampTextCard(customer)}\n\n9/9 stamps. Your next standard wash is free.\nView your stamped card: ${cardLink}`;
   }
-  return `Hi ${customer.name}, THE CARWASH has verified your ${service}${plate}. Your loyalty card is now ${customer.stampBalance}/9 stamps. You need ${washesUntilFree(customer)} more paid wash${washesUntilFree(customer) === 1 ? "" : "es"} for a free wash.`;
+  return `${header}\n\n${stampTextCard(customer)}\n\n${customer.stampBalance}/9 stamps. ${washesUntilFree(customer)} more paid wash${washesUntilFree(customer) === 1 ? "" : "es"} until your free wash.\nView your stamped card: ${cardLink}`;
 }
 
 function redeemedWashMessage(customer, details = {}) {
   const service = details.service || "free wash";
   const plate = details.plate ? ` for ${details.plate}` : "";
-  return `Hi ${customer.name}, THE CARWASH has redeemed your ${service}${plate}. Your loyalty card has reset and you can start earning stamps again. Thank you for your support.`;
+  return `THE CARWASH LOYALTY CARD\nCustomer: ${customer.name}\nCode: ${customerCode(customer)}\nFree wash redeemed: ${service}${plate}\n\n[ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [FREE]\n\nYour loyalty card has reset and you can start earning stamps again.\nView your card: ${customerAppLink(customer, { ownerWelcome: false })}`;
 }
 
 function openVerificationWhatsApp(customer, message) {
@@ -2869,6 +3013,7 @@ function addPaidWash(customer, details = {}) {
     plate: details.plate || primaryPlate(customer),
     note: details.note || (isReadyForFreeWash(customer) ? "Free wash now ready" : "Owner verified"),
     date: washDate,
+    stampBalanceAfter: customer.stampBalance,
     updatedAt: nowIso(),
   });
   setOwnerAlert(isReadyForFreeWash(customer) ? `${customer.name}'s free wash is now ready.` : "Paid wash verified.");
@@ -2897,6 +3042,7 @@ function redeemFreeWash(customer, details = {}) {
     plate: details.plate || primaryPlate(customer),
     note: details.note || "10th wash redeemed",
     date: washDate,
+    stampBalanceAfter: customer.stampBalance,
     updatedAt: nowIso(),
   });
   setOwnerAlert(`${customer.name}'s free wash was redeemed. Their card has reset.`);
@@ -3252,6 +3398,15 @@ elements.rulesModeButton.addEventListener("click", () => setMode("rules"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
 elements.feedbackModeButton.addEventListener("click", () => setMode("feedback"));
 elements.ownerModeButton.addEventListener("click", () => setMode("owner"));
+elements.customerWelcomeCard.addEventListener("click", (event) => {
+  if (event.target.closest("[data-customer-install-app]")) {
+    elements.installButton.click();
+    return;
+  }
+  if (event.target.closest("[data-customer-book-wash]")) {
+    setMode("book");
+  }
+});
 elements.ownerView.addEventListener("click", (event) => {
   const button = event.target.closest("[data-owner-jump]");
   if (!button || !ownerUnlocked) return;
@@ -3357,6 +3512,11 @@ elements.bookingAlertViewButton.addEventListener("click", viewBookingAlert);
 elements.bookingAlertModal.addEventListener("click", (event) => {
   if (event.target === elements.bookingAlertModal) closeBookingAlert(true);
 });
+elements.stampAlertCloseButton.addEventListener("click", () => closeStampAlert(true));
+elements.stampAlertViewButton.addEventListener("click", viewStampAlert);
+elements.stampAlertModal.addEventListener("click", (event) => {
+  if (event.target === elements.stampAlertModal) closeStampAlert(true);
+});
 elements.feedbackThanksCloseButton.addEventListener("click", closeFeedbackThanksPopup);
 elements.feedbackThanksViewButton.addEventListener("click", viewFeedbackThanks);
 elements.feedbackThanksModal.addEventListener("click", (event) => {
@@ -3408,6 +3568,7 @@ elements.customerForm.addEventListener("submit", (event) => {
       lastWash: today(),
       joined: today(),
       updatedAt: nowIso(),
+      ownerAdded: false,
     };
     state.customers.push(customer);
   } else {
@@ -3586,7 +3747,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=ownerbuttons1");
+    navigator.serviceWorker.register("sw.js?v=stampcard1");
   });
 }
 
