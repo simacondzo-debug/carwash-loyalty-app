@@ -14,7 +14,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=duplicatefix1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=firstwash1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -160,6 +160,7 @@ const elements = {
   ownerAddCustomerAlert: document.querySelector("#ownerAddCustomerAlert"),
   ownerAddCustomerForm: document.querySelector("#ownerAddCustomerForm"),
   ownerAddCustomerInvite: document.querySelector("#ownerAddCustomerInvite"),
+  ownerAddFirstWash: document.querySelector("#ownerAddFirstWash"),
   ownerAddCustomerName: document.querySelector("#ownerAddCustomerName"),
   ownerAddCustomerPhone: document.querySelector("#ownerAddCustomerPhone"),
   ownerAddCustomerPlate: document.querySelector("#ownerAddCustomerPlate"),
@@ -1341,7 +1342,7 @@ function customerAppLink(customer = null, options = {}) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "duplicatefix1");
+  url.searchParams.set("v", "firstwash1");
   return url.href;
 }
 
@@ -1723,6 +1724,7 @@ function addOwnerCustomer(event) {
   const phone = elements.ownerAddCustomerPhone.value.trim();
   const plate = normalizePlate(elements.ownerAddCustomerPlate.value);
   const phoneKey = customerPhoneKey(phone);
+  const stampFirstWash = elements.ownerAddFirstWash.checked;
 
   if (!name) {
     setOwnerAddCustomerAlert("Customer name is required.");
@@ -1736,7 +1738,7 @@ function addOwnerCustomer(event) {
     selectOwnerCustomer(existingCustomer, plate);
     renderOwnerCustomerInvite(existingCustomer);
     setOwnerAddCustomerAlert(
-      `${existingCustomer.name} is already on the system. Customer code: ${customerCode(existingCustomer)}. No duplicate was created.`,
+      `${existingCustomer.name} is already on the system. Customer code: ${customerCode(existingCustomer)}. No duplicate was created.${stampFirstWash ? " Use Verify Wash if this visit must be stamped." : ""}`,
     );
     return;
   }
@@ -1760,13 +1762,25 @@ function addOwnerCustomer(event) {
   };
 
   state.customers.push(customer);
+  if (stampFirstWash) {
+    addPaidWash(customer, {
+      service: "Full wash",
+      plate,
+      date: today(),
+      note: "Stamped while adding new customer",
+    });
+  }
   elements.ownerAddCustomerForm.reset();
   render();
   elements.ownerCustomerSelect.value = customer.id;
   renderOwnerVehicleOptions();
   renderOwnerManagement();
   updateRedeemButtonState();
-  setOwnerAddCustomerAlert(`${customer.name} added. Customer code: ${customerCode(customer)}.`);
+  setOwnerAddCustomerAlert(
+    stampFirstWash
+      ? `${customer.name} added and 1st paid wash stamped. Customer code: ${customerCode(customer)}.`
+      : `${customer.name} added. Customer code: ${customerCode(customer)}.`,
+  );
   renderOwnerCustomerInvite(customer);
 }
 
@@ -2163,7 +2177,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "duplicatefix1",
+    backupVersion: "firstwash1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3807,7 +3821,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=duplicatefix1");
+    navigator.serviceWorker.register("sw.js?v=firstwash1");
   });
 }
 
