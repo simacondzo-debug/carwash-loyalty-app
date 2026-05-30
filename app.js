@@ -14,7 +14,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=firstwash1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=cardsync1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -331,6 +331,19 @@ function cacheStateLocally() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function wait(milliseconds) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+}
+
+async function waitForSharedStateLoad(timeout = 3000) {
+  const startedAt = Date.now();
+  while (sharedStateLoading && Date.now() - startedAt < timeout) {
+    await wait(100);
+  }
+}
+
 function stateItemTime(value = {}) {
   const parsed = Date.parse(
     value.updatedAt || value.replyDate || value.date || value.lastWash || value.joined || "",
@@ -430,6 +443,27 @@ async function pushSharedState() {
     sharedStateReady = false;
     sharedStateDirty = true;
   }
+}
+
+async function saveStateImmediately() {
+  cacheStateLocally();
+  sharedStateDirty = true;
+  clearTimeout(sharedSaveTimer);
+
+  await waitForSharedStateLoad();
+  if (!sharedStateReady) {
+    await loadSharedState();
+    await waitForSharedStateLoad();
+  }
+
+  clearTimeout(sharedSaveTimer);
+  if (!sharedStateReady) {
+    queueSharedStateSave();
+    return false;
+  }
+
+  await pushSharedState();
+  return sharedStateReady && !sharedStateDirty;
 }
 
 async function refreshSharedState() {
@@ -1342,7 +1376,7 @@ function customerAppLink(customer = null, options = {}) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "firstwash1");
+  url.searchParams.set("v", "cardsync1");
   return url.href;
 }
 
@@ -2177,7 +2211,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "firstwash1",
+    backupVersion: "cardsync1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3618,7 +3652,7 @@ elements.feedbackList.addEventListener("submit", (event) => {
   saveFeedbackReply(form.dataset.feedbackReplyForm, reply);
 });
 
-elements.customerForm.addEventListener("submit", (event) => {
+elements.customerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const name = elements.customerName.value.trim();
   const phone = elements.customerPhone.value.trim();
@@ -3654,12 +3688,16 @@ elements.customerForm.addEventListener("submit", (event) => {
 
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   elements.customerForm.reset();
-  setCustomerAlert(
-    isNewCustomer
-      ? "Your loyalty card is ready. Show your Customer ID at the counter after each wash."
-      : "Welcome back. Your loyalty card is open and ready to use.",
-  );
+  setCustomerAlert("Saving your loyalty card online...");
   render();
+  const synced = await saveStateImmediately();
+  setCustomerAlert(
+    synced
+      ? isNewCustomer
+        ? "Your loyalty card is saved online. Show your Customer ID at the counter after each wash."
+        : "Welcome back. Your loyalty card is synced and ready to use."
+      : "Your card is open on this phone, but it has not synced online yet. Keep the app open with internet and try again.",
+  );
 });
 
 elements.customerCardDisplay.addEventListener("submit", (event) => {
@@ -3821,7 +3859,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=firstwash1");
+    navigator.serviceWorker.register("sw.js?v=cardsync1");
   });
 }
 
