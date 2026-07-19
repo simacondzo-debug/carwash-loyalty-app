@@ -8,13 +8,14 @@ const OWNER_SEEN_BOOKINGS_KEY = "the-carwash-at-shell-owner-seen-bookings-v1";
 const OWNER_SEEN_FEEDBACK_KEY = "the-carwash-at-shell-owner-seen-feedback-v1";
 const OWNER_CREDENTIAL_KEY = "the-carwash-at-shell-owner-credential-v1";
 const INSTALL_HIDDEN_KEY = "the-carwash-install-button-hidden-v1";
+const WHATSAPP_CAMPAIGN_MESSAGE_KEY = "the-carwash-whatsapp-campaign-message-v1";
 const STATE_API_URL = "api/state";
 const STAMPS_FOR_FREE_WASH = 9;
 const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=cardsync1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=whatsappspecial1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -251,6 +252,13 @@ const elements = {
   stampAlertViewButton: document.querySelector("#stampAlertViewButton"),
   whatsappAlertList: document.querySelector("#whatsappAlertList"),
   whatsappAlertSummary: document.querySelector("#whatsappAlertSummary"),
+  whatsappCampaignAlert: document.querySelector("#whatsappCampaignAlert"),
+  whatsappCampaignCount: document.querySelector("#whatsappCampaignCount"),
+  whatsappCampaignList: document.querySelector("#whatsappCampaignList"),
+  whatsappCampaignMessage: document.querySelector("#whatsappCampaignMessage"),
+  whatsappCopyCampaignButton: document.querySelector("#whatsappCopyCampaignButton"),
+  whatsappDownloadContactsButton: document.querySelector("#whatsappDownloadContactsButton"),
+  whatsappOpenCampaignButton: document.querySelector("#whatsappOpenCampaignButton"),
 };
 
 function loadState() {
@@ -1376,7 +1384,7 @@ function customerAppLink(customer = null, options = {}) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "cardsync1");
+  url.searchParams.set("v", "whatsappspecial1");
   return url.href;
 }
 
@@ -2211,7 +2219,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "cardsync1",
+    backupVersion: "whatsappspecial1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -2534,6 +2542,147 @@ function whatsappLink(customer, message) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
 
+function defaultCampaignMessage(customer = null) {
+  const greeting = customer?.name ? `Hi ${customer.name},` : "Hi,";
+  return `${greeting} THE CARWASH special: get 10% off your wash this Wednesday and Thursday only. Show this WhatsApp message when you arrive. View the app: ${customer ? customerAppLink(customer, { ownerWelcome: false }) : customerAppLink()}\n\nReply STOP if you no longer want WhatsApp updates.`;
+}
+
+function campaignMessageTemplate() {
+  return localStorage.getItem(WHATSAPP_CAMPAIGN_MESSAGE_KEY) || defaultCampaignMessage();
+}
+
+function campaignMessageForCustomer(customer) {
+  const template = elements.whatsappCampaignMessage.value.trim() || campaignMessageTemplate();
+  return template
+    .replaceAll("{name}", customer.name || "customer")
+    .replaceAll("{firstName}", String(customer.name || "customer").split(/\s+/)[0])
+    .replaceAll("{code}", customerCode(customer))
+    .replaceAll("{link}", customerAppLink(customer, { ownerWelcome: false }));
+}
+
+function campaignCustomers() {
+  return state.customers.filter((customer) => customer.whatsappOptIn && whatsappNumber(customer.phone));
+}
+
+function setCampaignAlert(message) {
+  elements.whatsappCampaignAlert.textContent = message;
+  elements.whatsappCampaignAlert.classList.toggle("visible", Boolean(message));
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+}
+
+function downloadTextFile(filename, text, type = "text/plain;charset=utf-8") {
+  const blob = new Blob([text], { type });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function copyCampaignMessage() {
+  const message = elements.whatsappCampaignMessage.value.trim() || campaignMessageTemplate();
+  try {
+    await navigator.clipboard.writeText(message);
+    setCampaignAlert("Campaign message copied. Paste it into a WhatsApp Business broadcast list.");
+  } catch {
+    elements.whatsappCampaignMessage.focus();
+    elements.whatsappCampaignMessage.select();
+    setCampaignAlert("Select and copy the message manually.");
+  }
+}
+
+function exportCampaignContacts() {
+  const recipients = campaignCustomers();
+  if (!recipients.length) {
+    setCampaignAlert("No WhatsApp-approved customers to export.");
+    return false;
+  }
+
+  const rows = [
+    ["Name", "WhatsApp number", "Phone", "Customer code", "Vehicle"].map(csvCell).join(","),
+    ...recipients.map((customer) =>
+      [
+        customer.name,
+        whatsappNumber(customer.phone),
+        customer.phone,
+        customerCode(customer),
+        vehicleLabel(customer),
+      ]
+        .map(csvCell)
+        .join(","),
+    ),
+  ];
+  downloadTextFile(`the-carwash-whatsapp-special-${today()}.csv`, rows.join("\n"), "text/csv;charset=utf-8");
+  setCampaignAlert(`Exported ${recipients.length} WhatsApp contact${recipients.length === 1 ? "" : "s"}.`);
+  return true;
+}
+
+function openCampaignLinks() {
+  const recipients = campaignCustomers();
+  if (!recipients.length) {
+    setCampaignAlert("No WhatsApp-approved customers with phone numbers.");
+    return false;
+  }
+
+  let opened = 0;
+  recipients.forEach((customer) => {
+    const link = whatsappLink(customer, campaignMessageForCustomer(customer));
+    if (link && window.open(link, "_blank", "noopener")) opened += 1;
+  });
+  setCampaignAlert(
+    opened
+      ? `Opened ${opened} WhatsApp chat${opened === 1 ? "" : "s"}. Press send in WhatsApp. If some were blocked, use the individual send buttons below.`
+      : "Your browser blocked the WhatsApp chats. Use the individual Send special buttons below.",
+  );
+  return opened > 0;
+}
+
+function renderWhatsAppCampaign() {
+  const recipients = campaignCustomers();
+  const skipped = state.customers.length - recipients.length;
+  const currentMessage = elements.whatsappCampaignMessage.value.trim();
+  if (!currentMessage) {
+    elements.whatsappCampaignMessage.value = campaignMessageTemplate();
+  }
+
+  elements.whatsappCampaignCount.textContent = `${recipients.length} recipient${recipients.length === 1 ? "" : "s"}`;
+  elements.whatsappCampaignList.innerHTML = "";
+
+  if (!recipients.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state compact-empty";
+    empty.innerHTML = `<strong>No WhatsApp campaign recipients</strong><span>${skipped ? "Customers must approve WhatsApp alerts before they appear here." : "Add customers with WhatsApp approval to send campaigns."}</span>`;
+    elements.whatsappCampaignList.append(empty);
+    return;
+  }
+
+  const note = document.createElement("div");
+  note.className = "campaign-note";
+  note.textContent = `${recipients.length} customer${recipients.length === 1 ? "" : "s"} approved WhatsApp alerts. ${skipped ? `${skipped} customer${skipped === 1 ? "" : "s"} skipped because WhatsApp is not approved or phone is missing.` : "No customers skipped."}`;
+  elements.whatsappCampaignList.append(note);
+
+  recipients.forEach((customer) => {
+    const message = campaignMessageForCustomer(customer);
+    const link = whatsappLink(customer, message);
+    const card = document.createElement("article");
+    card.className = "whatsapp-alert-card campaign-recipient-card";
+    card.innerHTML = `
+      <div>
+        <strong>${escapeHtml(customer.name)}</strong>
+        <span>${escapeHtml(customer.phone)} - ${escapeHtml(customerCode(customer))}</span>
+      </div>
+      <a class="success-action full-width" href="${link}" target="_blank" rel="noopener">Send special</a>
+    `;
+    elements.whatsappCampaignList.append(card);
+  });
+}
+
 function freeWashMessage(customer) {
   return `Hi ${customer.name}, THE CARWASH says your loyalty card is ready for your free wash. Show your customer code ${customerCode(customer)} when you arrive.`;
 }
@@ -2583,6 +2732,7 @@ function openVerificationWhatsApp(customer, message) {
 }
 
 function renderWhatsAppAlerts() {
+  renderWhatsAppCampaign();
   const optInCustomers = state.customers.filter((customer) => customer.whatsappOptIn);
   const freeReady = optInCustomers.filter(isReadyForFreeWash);
   const drawReady = optInCustomers.filter((customer) => drawEligibility(customer).eligible);
@@ -3592,6 +3742,13 @@ elements.ownerProductForm.addEventListener("submit", saveOwnerProduct);
 elements.ownerNewProductButton.addEventListener("click", createBlankProduct);
 elements.ownerRemoveProductButton.addEventListener("click", removeOwnerProduct);
 elements.ownerBackupButton.addEventListener("click", exportOwnerBackup);
+elements.whatsappCampaignMessage.addEventListener("input", () => {
+  localStorage.setItem(WHATSAPP_CAMPAIGN_MESSAGE_KEY, elements.whatsappCampaignMessage.value);
+  renderWhatsAppCampaign();
+});
+elements.whatsappCopyCampaignButton.addEventListener("click", copyCampaignMessage);
+elements.whatsappDownloadContactsButton.addEventListener("click", exportCampaignContacts);
+elements.whatsappOpenCampaignButton.addEventListener("click", openCampaignLinks);
 elements.feedbackForm.addEventListener("submit", submitFeedback);
 elements.ownerNoticeForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -3859,7 +4016,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=cardsync1");
+    navigator.serviceWorker.register("sw.js?v=whatsappspecial1");
   });
 }
 

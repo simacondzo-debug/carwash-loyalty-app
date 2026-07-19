@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=cardsync1" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=cardsync1" />
-    <link rel="icon" href="icons/icon-192.png?v=cardsync1" />
-    <link rel="stylesheet" href="styles.css?v=cardsync1" />
+    <link rel="manifest" href="manifest.webmanifest?v=whatsappspecial1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=whatsappspecial1" />
+    <link rel="icon" href="icons/icon-192.png?v=whatsappspecial1" />
+    <link rel="stylesheet" href="styles.css?v=whatsappspecial1" />
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=cardsync1" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=whatsappspecial1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -952,6 +952,32 @@
                 <h2>WhatsApp alerts</h2>
               </div>
             </div>
+            <div class="campaign-card">
+              <div class="campaign-card-header">
+                <div>
+                  <strong>Wednesday & Thursday special</strong>
+                  <span>10% off washes for WhatsApp-approved customers.</span>
+                </div>
+                <span class="status-pill status-ready" id="whatsappCampaignCount">0 recipients</span>
+              </div>
+              <label>
+                Campaign message
+                <textarea id="whatsappCampaignMessage" rows="5"></textarea>
+              </label>
+              <div class="button-row">
+                <button class="primary-action" id="whatsappOpenCampaignButton" type="button">
+                  Open WhatsApp chats
+                </button>
+                <button class="ghost-button" id="whatsappCopyCampaignButton" type="button">
+                  Copy message
+                </button>
+                <button class="ghost-button" id="whatsappDownloadContactsButton" type="button">
+                  Export contacts
+                </button>
+              </div>
+              <p class="form-alert" id="whatsappCampaignAlert" role="status"></p>
+              <div class="whatsapp-campaign-list" id="whatsappCampaignList"></div>
+            </div>
             <p class="muted-line" id="whatsappAlertSummary">No WhatsApp alerts ready.</p>
             <div class="whatsapp-alert-list" id="whatsappAlertList"></div>
           </section>
@@ -1101,6 +1127,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=cardsync1"></script>
+    <script src="app.js?v=whatsappspecial1"></script>
   </body>
 </html>

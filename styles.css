@@ -1683,6 +1683,53 @@ textarea {
   margin-top: 14px;
 }
 
+.campaign-card {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(8, 127, 140, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(8, 127, 140, 0.1), rgba(252, 183, 43, 0.16));
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.campaign-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.campaign-card-header strong,
+.campaign-card-header span {
+  display: block;
+}
+
+.campaign-card-header span {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.campaign-card textarea {
+  resize: vertical;
+}
+
+.whatsapp-campaign-list {
+  display: grid;
+  gap: 10px;
+}
+
+.campaign-note {
+  color: var(--muted);
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.campaign-recipient-card {
+  grid-template-columns: 1fr minmax(150px, 190px);
+  align-items: center;
+}
+
 .draw-entry,
 .feedback-entry,
 .whatsapp-alert-card {
@@ -2018,6 +2065,7 @@ textarea {
   .booking-queue-tools,
   .booking-card-details,
   .booking-contact-row,
+  .campaign-recipient-card,
   .owner-command-panel,
   .owner-quick-actions,
   .owner-action-stack,
