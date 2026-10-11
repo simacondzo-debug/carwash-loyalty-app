@@ -15,7 +15,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=accent1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=ownerstate1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -1403,7 +1403,7 @@ function customerAppLink(customer = null, options = {}) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "accent1");
+  url.searchParams.set("v", "ownerstate1");
   return url.href;
 }
 
@@ -2259,7 +2259,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "accent1",
+    backupVersion: "ownerstate1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -4092,7 +4092,7 @@ if ("serviceWorker" in navigator) {
       window.location.reload();
     });
 
-    navigator.serviceWorker.register("sw.js?v=accent1").then((registration) => {
+    navigator.serviceWorker.register("sw.js?v=ownerstate1").then((registration) => {
       registration.update();
     });
   });

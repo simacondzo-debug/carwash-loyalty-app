@@ -2703,3 +2703,35 @@ textarea:focus {
     line-height: 1.02;
   }
 }
+
+/* Owner panels communicate their state at a glance: closed is red, open is green. */
+:root {
+  --owner-open: #1f7a45;
+  --owner-open-dark: #176037;
+}
+
+.owner-dashboard .owner-tool-panel.owner-collapsed .owner-toggle-button,
+#activity.owner-tool-panel.owner-collapsed .owner-toggle-button {
+  border-color: #df6970;
+  background: var(--signal-red);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(181, 31, 43, 0.24);
+}
+
+.owner-dashboard .owner-tool-panel.owner-collapsed .owner-toggle-button:hover,
+#activity.owner-tool-panel.owner-collapsed .owner-toggle-button:hover {
+  background: var(--signal-red-dark);
+}
+
+.owner-dashboard .owner-tool-panel:not(.owner-collapsed) .owner-toggle-button,
+#activity.owner-tool-panel:not(.owner-collapsed) .owner-toggle-button {
+  border-color: #74bd91;
+  background: var(--owner-open);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(31, 122, 69, 0.24);
+}
+
+.owner-dashboard .owner-tool-panel:not(.owner-collapsed) .owner-toggle-button:hover,
+#activity.owner-tool-panel:not(.owner-collapsed) .owner-toggle-button:hover {
+  background: var(--owner-open-dark);
+}
