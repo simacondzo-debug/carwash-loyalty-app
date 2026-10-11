@@ -2629,3 +2629,77 @@ textarea:focus {
     gap: 7px;
   }
 }
+
+/* Restrained automotive red: reserved for customer actions and rewards that need attention. */
+:root {
+  --signal-red: #b51f2b;
+  --signal-red-dark: #8f1721;
+  --silver-border: #b9b9b4;
+}
+
+.hero-meter {
+  border-color: rgba(206, 206, 200, 0.58);
+  background: rgba(8, 8, 8, 0.76);
+}
+
+.hero-meter span {
+  border-color: var(--silver-border);
+  background: #202020;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+.hero-meter strong {
+  border: 1px solid #df6970;
+  background: var(--signal-red);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(181, 31, 43, 0.34);
+}
+
+.hero-conversion-actions .primary-action,
+.specials-bar .primary-action,
+#bookView .primary-action,
+#menuView .menu-item-actions .primary-action {
+  background: var(--signal-red);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(181, 31, 43, 0.24);
+}
+
+.hero-conversion-actions .primary-action:hover,
+.specials-bar .primary-action:hover,
+#bookView .primary-action:hover,
+#menuView .menu-item-actions .primary-action:hover {
+  background: var(--signal-red-dark);
+}
+
+.specials-bar {
+  border-color: var(--silver-border);
+  box-shadow: inset 4px 0 0 var(--signal-red), var(--shadow-soft);
+}
+
+.specials-bar span {
+  background: var(--signal-red);
+}
+
+.status-ready,
+.stamp.free-slot.ready {
+  border-color: var(--signal-red);
+  background: var(--signal-red);
+  color: #ffffff;
+}
+
+.stamp.filled {
+  border-color: var(--silver-border);
+  background: #262626;
+}
+
+.primary-action:focus-visible,
+.ghost-button:focus-visible {
+  outline-color: rgba(181, 31, 43, 0.5);
+}
+
+@media (max-width: 620px) {
+  .hero h2 {
+    font-size: clamp(1.9rem, 11vw, 2.75rem);
+    line-height: 1.02;
+  }
+}
