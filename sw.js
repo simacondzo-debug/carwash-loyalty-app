@@ -1,12 +1,12 @@
-const CACHE_NAME = "the-carwash-pwa-v68";
+const CACHE_NAME = "the-carwash-pwa-v69";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=mono1",
-  "./app.js?v=mono1",
-  "./manifest.webmanifest?v=mono1",
-  "./icons/icon-192.png?v=mono1",
-  "./icons/icon-512.png?v=mono1",
+  "./styles.css?v=mono2",
+  "./app.js?v=mono2",
+  "./manifest.webmanifest?v=mono2",
+  "./icons/icon-192.png?v=mono2",
+  "./icons/icon-512.png?v=mono2",
 ];
 
 self.addEventListener("install", (event) => {
@@ -33,14 +33,14 @@ self.addEventListener("fetch", (event) => {
   if (requestUrl.origin !== self.location.origin) return;
   if (requestUrl.pathname.startsWith("/api/")) return;
 
+  // Prefer the live version while the device is online, with the saved app as an offline fallback.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
+    fetch(event.request)
+      .then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
-      });
-    }),
+      })
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))),
   );
 });
