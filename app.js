@@ -15,7 +15,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=whatsappspecial1";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=mono1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -242,6 +242,8 @@ const elements = {
   revokeWashButton: document.querySelector("#revokeWashButton"),
   runDrawButton: document.querySelector("#runDrawButton"),
   searchInput: document.querySelector("#searchInput"),
+  specialsBar: document.querySelector("#specialsBar"),
+  specialsBookButton: document.querySelector("#specialsBookButton"),
   statusFilter: document.querySelector("#statusFilter"),
   stampAlertCloseButton: document.querySelector("#stampAlertCloseButton"),
   stampAlertModal: document.querySelector("#stampAlertModal"),
@@ -1384,7 +1386,7 @@ function customerAppLink(customer = null, options = {}) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "whatsappspecial1");
+  url.searchParams.set("v", "mono1");
   return url.href;
 }
 
@@ -2219,7 +2221,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "whatsappspecial1",
+    backupVersion: "mono1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3559,6 +3561,7 @@ function setMode(mode) {
   elements.aboutView.classList.toggle("is-hidden", !isAbout);
   elements.feedbackView.classList.toggle("is-hidden", !isFeedback);
   elements.ownerView.classList.toggle("is-hidden", !isOwner);
+  elements.specialsBar.classList.toggle("is-hidden", isOwner);
   elements.customerModeButton.classList.toggle("active", isCustomer);
   elements.menuModeButton.classList.toggle("active", isMenu);
   elements.bookModeButton.classList.toggle("active", isBook);
@@ -3648,6 +3651,7 @@ setupOwnerAccordions();
 elements.customerModeButton.addEventListener("click", () => setMode("customer"));
 elements.menuModeButton.addEventListener("click", () => setMode("menu"));
 elements.bookModeButton.addEventListener("click", () => setMode("book"));
+elements.specialsBookButton.addEventListener("click", () => setMode("book"));
 elements.didYouKnowModeButton.addEventListener("click", () => setMode("didYouKnow"));
 elements.rulesModeButton.addEventListener("click", () => setMode("rules"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
@@ -4016,7 +4020,7 @@ elements.installButton.addEventListener("click", async () => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js?v=whatsappspecial1");
+    navigator.serviceWorker.register("sw.js?v=mono1");
   });
 }
 
