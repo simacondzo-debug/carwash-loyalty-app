@@ -15,7 +15,7 @@ const REQUIRED_DRAW_WASHES = 5;
 const DRAW_WINDOW_DAYS = 60;
 const DRAW_PRIZE = "1 free standard wash valid for 30 days";
 const OLD_DRAW_PRIZE = "1 free wash every month for a year";
-const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=mono2";
+const MENU_CSV_URL = "assets/products-12-05-2026.csv?v=review1";
 const FALLBACK_MENU_PRODUCTS = [
   { id: "taxi-minibus-2", name: "TAXI / MINIBUS", description: "", price: 80, category: "WASH & GO", sku: "T/M003", vatEnabled: true },
   { id: "suv-double-cab-3", name: "SUV / DOUBLE CAB", description: "", price: 65, category: "WASH & GO", sku: "S/DC004", vatEnabled: true },
@@ -79,6 +79,7 @@ const elements = {
   bookingNote: document.querySelector("#bookingNote"),
   bookingPhone: document.querySelector("#bookingPhone"),
   bookingPlate: document.querySelector("#bookingPlate"),
+  bookingPrivacyConsent: document.querySelector("#bookingPrivacyConsent"),
   bookingServiceSelect: document.querySelector("#bookingServiceSelect"),
   bookingAlertCloseButton: document.querySelector("#bookingAlertCloseButton"),
   bookingAlertModal: document.querySelector("#bookingAlertModal"),
@@ -102,6 +103,8 @@ const elements = {
   customerName: document.querySelector("#customerName"),
   customerPhone: document.querySelector("#customerPhone"),
   customerPlate: document.querySelector("#customerPlate"),
+  customerPrivacyConsent: document.querySelector("#customerPrivacyConsent"),
+  customerPrivacyLink: document.querySelector("#customerPrivacyLink"),
   customerReplyPreview: document.querySelector("#customerReplyPreview"),
   customerWhatsappOptIn: document.querySelector("#customerWhatsappOptIn"),
   customerWelcomeCard: document.querySelector("#customerWelcomeCard"),
@@ -109,6 +112,8 @@ const elements = {
   didYouKnowModeButton: document.querySelector("#didYouKnowModeButton"),
   didYouKnowView: document.querySelector("#didYouKnowView"),
   installButton: document.querySelector("#installButton"),
+  heroBookButton: document.querySelector("#heroBookButton"),
+  heroStartingPrice: document.querySelector("#heroStartingPrice"),
   drawResult: document.querySelector("#drawResult"),
   drawSummary: document.querySelector("#drawSummary"),
   feedbackAlert: document.querySelector("#feedbackAlert"),
@@ -118,6 +123,7 @@ const elements = {
   feedbackModeButton: document.querySelector("#feedbackModeButton"),
   feedbackName: document.querySelector("#feedbackName"),
   feedbackPhone: document.querySelector("#feedbackPhone"),
+  feedbackPrivacyConsent: document.querySelector("#feedbackPrivacyConsent"),
   feedbackRating: document.querySelector("#feedbackRating"),
   feedbackThanksCloseButton: document.querySelector("#feedbackThanksCloseButton"),
   feedbackThanksModal: document.querySelector("#feedbackThanksModal"),
@@ -165,6 +171,7 @@ const elements = {
   ownerAddCustomerName: document.querySelector("#ownerAddCustomerName"),
   ownerAddCustomerPhone: document.querySelector("#ownerAddCustomerPhone"),
   ownerAddCustomerPlate: document.querySelector("#ownerAddCustomerPlate"),
+  ownerAddPrivacyConsent: document.querySelector("#ownerAddPrivacyConsent"),
   ownerAddWhatsappOptIn: document.querySelector("#ownerAddWhatsappOptIn"),
   ownerAlert: document.querySelector("#ownerAlert"),
   ownerAlertCloseButton: document.querySelector("#ownerAlertCloseButton"),
@@ -309,6 +316,8 @@ function migrateState(loadedState) {
       lifetimePaidWashes: Number(customer.lifetimePaidWashes || 0),
       freeWashesRedeemed: Number(customer.freeWashesRedeemed || 0),
       whatsappOptIn: Boolean(customer.whatsappOptIn) && hasPhone,
+      privacyConsent: Boolean(customer.privacyConsent),
+      privacyConsentAt: String(customer.privacyConsentAt || ""),
       stampBalance: Number(customer.stampBalance || 0),
       vehicles,
       plate: vehicles[0] || "",
@@ -639,6 +648,13 @@ function menuCategories() {
   return [...new Set(menuItems.map((item) => item.category))].sort((a, b) =>
     a.localeCompare(b),
   );
+}
+
+function renderHeroOffer() {
+  if (!elements.heroStartingPrice) return;
+  const prices = menuItems.map((item) => Number(item.price)).filter((price) => Number.isFinite(price));
+  const lowestPrice = prices.length ? Math.min(...prices) : 55;
+  elements.heroStartingPrice.textContent = formatPrice(lowestPrice);
 }
 
 async function loadMenu() {
@@ -1146,6 +1162,7 @@ function render() {
   updateOfflineBanner();
   renderCustomerNotice();
   renderCustomerAppQr();
+  renderHeroOffer();
   renderMenu();
   renderBookingServiceOptions();
   renderCustomerBookingStatus();
@@ -1386,7 +1403,7 @@ function customerAppLink(customer = null, options = {}) {
       url.searchParams.set("welcome", "owner");
     }
   }
-  url.searchParams.set("v", "mono2");
+  url.searchParams.set("v", "review1");
   return url.href;
 }
 
@@ -1731,7 +1748,7 @@ function viewStampAlert() {
   elements.customerCardDisplay.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-function ensureBookingCustomer({ name, phone, plate }) {
+function ensureBookingCustomer({ name, phone, plate, privacyConsent = false }) {
   let customer = findExistingCustomer({ name, phone, plate });
   if (!customer) {
     customer = {
@@ -1745,6 +1762,8 @@ function ensureBookingCustomer({ name, phone, plate }) {
       freeWashesRedeemed: 0,
       facebookFollowed: false,
       whatsappOptIn: false,
+      privacyConsent: Boolean(privacyConsent),
+      privacyConsentAt: privacyConsent ? nowIso() : "",
       lastWash: today(),
       joined: today(),
       updatedAt: nowIso(),
@@ -1755,6 +1774,10 @@ function ensureBookingCustomer({ name, phone, plate }) {
     customer.name = name || customer.name;
     if (!customer.phone && phone) customer.phone = phone;
     if (addVehicleToCustomer(customer, plate) || name || phone) touchCustomer(customer);
+    if (privacyConsent && !customer.privacyConsent) {
+      customer.privacyConsent = true;
+      customer.privacyConsentAt = nowIso();
+    }
   }
   localStorage.setItem(ACTIVE_CUSTOMER_KEY, customer.id);
   return customer;
@@ -1769,6 +1792,7 @@ function addOwnerCustomer(event) {
   const plate = normalizePlate(elements.ownerAddCustomerPlate.value);
   const phoneKey = customerPhoneKey(phone);
   const stampFirstWash = elements.ownerAddFirstWash.checked;
+  const privacyConsent = elements.ownerAddPrivacyConsent.checked;
 
   if (!name) {
     setOwnerAddCustomerAlert("Customer name is required.");
@@ -1787,6 +1811,12 @@ function addOwnerCustomer(event) {
     return;
   }
 
+  if (!privacyConsent) {
+    setOwnerAddCustomerAlert("Confirm the customer's privacy consent before adding their details.");
+    elements.ownerAddCustomerInvite.classList.add("is-hidden");
+    return;
+  }
+
   const customer = {
     id: crypto.randomUUID(),
     name,
@@ -1799,6 +1829,8 @@ function addOwnerCustomer(event) {
     freeWashesRedeemed: 0,
     facebookFollowed: false,
     whatsappOptIn: Boolean(phoneKey && elements.ownerAddWhatsappOptIn.checked),
+    privacyConsent: true,
+    privacyConsentAt: nowIso(),
     lastWash: today(),
     joined: today(),
     updatedAt: nowIso(),
@@ -1835,13 +1867,19 @@ function submitBooking(event) {
   const phone = elements.bookingPhone.value.trim();
   const plate = normalizePlate(elements.bookingPlate.value);
   const note = elements.bookingNote.value.trim();
+  const privacyConsent = Boolean(elements.bookingPrivacyConsent.checked);
 
   if (!item || !name || !phone) {
     setBookingAlert("Please choose a wash service, then add your name and phone number.");
     return;
   }
 
-  const customer = ensureBookingCustomer({ name, phone, plate });
+  if (!privacyConsent) {
+    setBookingAlert("Please accept the privacy note before sending your booking.");
+    return;
+  }
+
+  const customer = ensureBookingCustomer({ name, phone, plate, privacyConsent });
   const booking = {
     id: crypto.randomUUID(),
     customerId: customer.id,
@@ -2221,7 +2259,7 @@ function exportOwnerBackup() {
 
   const payload = {
     app: "THE CARWASH",
-    backupVersion: "mono2",
+    backupVersion: "review1",
     exportedAt: new Date().toISOString(),
     sharedStateVersion: sharedStateVersion || null,
     state: migrateState(state),
@@ -3618,9 +3656,15 @@ function submitFeedback(event) {
   const name = elements.feedbackName.value.trim();
   const phone = elements.feedbackPhone.value.trim();
   const message = elements.feedbackMessage.value.trim();
+  const privacyConsent = elements.feedbackPrivacyConsent.checked;
 
   if (!name || !phone || !message) {
     setFeedbackAlert("Please complete your name, phone, and message.");
+    return;
+  }
+
+  if (!privacyConsent) {
+    setFeedbackAlert("Please accept the privacy note before sending feedback.");
     return;
   }
 
@@ -3631,6 +3675,8 @@ function submitFeedback(event) {
     name,
     phone,
     message,
+    privacyConsent: true,
+    privacyConsentAt: nowIso(),
     date: today(),
     updatedAt: nowIso(),
   };
@@ -3652,11 +3698,16 @@ elements.customerModeButton.addEventListener("click", () => setMode("customer"))
 elements.menuModeButton.addEventListener("click", () => setMode("menu"));
 elements.bookModeButton.addEventListener("click", () => setMode("book"));
 elements.specialsBookButton.addEventListener("click", () => setMode("book"));
+elements.heroBookButton.addEventListener("click", () => setMode("book"));
 elements.didYouKnowModeButton.addEventListener("click", () => setMode("didYouKnow"));
 elements.rulesModeButton.addEventListener("click", () => setMode("rules"));
 elements.aboutModeButton.addEventListener("click", () => setMode("about"));
 elements.feedbackModeButton.addEventListener("click", () => setMode("feedback"));
 elements.ownerModeButton.addEventListener("click", () => setMode("owner"));
+elements.customerPrivacyLink.addEventListener("click", () => setMode("rules"));
+document.querySelectorAll("[data-open-privacy]").forEach((button) => {
+  button.addEventListener("click", () => setMode("rules"));
+});
 elements.customerWelcomeCard.addEventListener("click", (event) => {
   if (event.target.closest("[data-customer-install-app]")) {
     elements.installButton.click();
@@ -3818,6 +3869,13 @@ elements.customerForm.addEventListener("submit", async (event) => {
   const name = elements.customerName.value.trim();
   const phone = elements.customerPhone.value.trim();
   const plate = normalizePlate(elements.customerPlate.value);
+  const privacyConsent = elements.customerPrivacyConsent.checked;
+
+  if (!privacyConsent) {
+    setCustomerAlert("Please accept the privacy note before opening your loyalty card.");
+    return;
+  }
+
   let customer = findExistingCustomer({ name, phone, plate });
   const isNewCustomer = !customer;
 
@@ -3833,6 +3891,8 @@ elements.customerForm.addEventListener("submit", async (event) => {
       freeWashesRedeemed: 0,
       facebookFollowed: false,
       whatsappOptIn: elements.customerWhatsappOptIn.checked,
+      privacyConsent: true,
+      privacyConsentAt: nowIso(),
       lastWash: today(),
       joined: today(),
       updatedAt: nowIso(),
@@ -3844,6 +3904,10 @@ elements.customerForm.addEventListener("submit", async (event) => {
     if (!customer.phone && phone) customer.phone = phone;
     addVehicleToCustomer(customer, plate);
     customer.whatsappOptIn = customer.whatsappOptIn || elements.customerWhatsappOptIn.checked;
+    if (!customer.privacyConsent) {
+      customer.privacyConsent = true;
+      customer.privacyConsentAt = nowIso();
+    }
     touchCustomer(customer);
   }
 
@@ -4028,7 +4092,7 @@ if ("serviceWorker" in navigator) {
       window.location.reload();
     });
 
-    navigator.serviceWorker.register("sw.js?v=mono2").then((registration) => {
+    navigator.serviceWorker.register("sw.js?v=review1").then((registration) => {
       registration.update();
     });
   });

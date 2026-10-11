@@ -4,20 +4,51 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#111111" />
+    <meta
+      name="description"
+      content="THE CARWASH offers premium hand-wash services, loyalty rewards, wash bookings, and CBD vehicle returns. Washes from R55."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.thecarwash1.co.za/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="THE CARWASH | Premium hand wash" />
+    <meta
+      property="og:description"
+      content="Premium hand-wash services from R55. Book a wash, collect loyalty rewards, and find us on the map."
+    />
+    <meta property="og:url" content="https://www.thecarwash1.co.za/" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="The Carwash" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>THE CARWASH</title>
-    <link rel="manifest" href="manifest.webmanifest?v=mono2" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=mono2" />
-    <link rel="icon" href="icons/icon-192.png?v=mono2" />
-    <link rel="stylesheet" href="styles.css?v=mono2" />
+    <link rel="manifest" href="manifest.webmanifest?v=review1" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=review1" />
+    <link rel="icon" href="icons/icon-192.png?v=review1" />
+    <link rel="stylesheet" href="styles.css?v=review1" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "AutomotiveBusiness",
+        "name": "THE CARWASH",
+        "url": "https://www.thecarwash1.co.za/",
+        "telephone": "+27717475755",
+        "email": "ekasigroup1@gmail.com",
+        "priceRange": "R55-R160",
+        "description": "Premium hand-wash services, loyalty rewards, wash bookings, and CBD vehicle returns.",
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": -26.876419040809132,
+          "longitude": 26.66416782488172
+        },
+        "hasMap": "https://www.google.com/maps/search/?api=1&query=-26.876419040809132%2C26.66416782488172"
+      }
+    </script>
   </head>
   <body>
     <div class="phone-app">
       <header class="topbar">
         <div class="brand-block">
-          <img class="brand-mark" src="icons/icon-192.png?v=mono2" alt="" />
+          <img class="brand-mark" src="icons/icon-192.png?v=review1" alt="" />
           <div>
             <h1>THE CARWASH</h1>
             <p>Carwash rewards</p>
@@ -29,9 +60,33 @@
       <main>
         <section class="hero" id="dashboard">
           <div>
-            <p class="eyebrow">Customer Rewards</p>
-            <h2>Wash 9 times. The 10th wash is free.</h2>
-            <p class="hero-copy">Lucky draw: 5 paid washes in 2 months can win 1 free standard wash.</p>
+            <p class="eyebrow">Premium hand wash</p>
+            <h2>Car care that fits your day.</h2>
+            <p class="hero-copy">
+              Professional hand-wash services from <strong id="heroStartingPrice">R55</strong>.
+              Book ahead, collect rewards, and ask about our CBD vehicle return option.
+            </p>
+            <div class="hero-conversion-actions">
+              <button class="primary-action" id="heroBookButton" type="button">Book a wash</button>
+              <a
+                class="ghost-button hero-whatsapp-button"
+                href="https://wa.me/27717475755?text=Hi%20THE%20CARWASH%2C%20I%20would%20like%20to%20book%20a%20wash."
+                target="_blank"
+                rel="noopener"
+              >
+                WhatsApp us
+              </a>
+            </div>
+            <div class="hero-service-summary">
+              <span>Loyalty reward: wash 9 times, the 10th wash is free.</span>
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=-26.876419040809132%2C26.66416782488172"
+                target="_blank"
+                rel="noopener"
+              >
+                Get directions
+              </a>
+            </div>
           </div>
           <div class="hero-meter" aria-label="Loyalty rule">
             <span>1</span>
@@ -141,6 +196,13 @@
                 <input id="customerWhatsappOptIn" type="checkbox" />
                 <span>I agree to receive WhatsApp alerts about free washes and competitions</span>
               </label>
+              <div class="checkbox-row privacy-consent">
+                <input id="customerPrivacyConsent" type="checkbox" required />
+                <label for="customerPrivacyConsent">
+                  I agree to THE CARWASH using my details to create my loyalty card, manage washes and bookings, and reply to feedback.
+                </label>
+                <button class="text-button" id="customerPrivacyLink" type="button">Privacy note</button>
+              </div>
               <button class="primary-action full-width" type="submit">Open my card</button>
             </form>
 
@@ -254,6 +316,13 @@
                 Note
                 <input id="bookingNote" type="text" placeholder="Preferred time or special request" />
               </label>
+              <div class="checkbox-row privacy-consent">
+                <input id="bookingPrivacyConsent" type="checkbox" required />
+                <label for="bookingPrivacyConsent">
+                  I agree to THE CARWASH using these booking details to contact me and manage my booking.
+                </label>
+                <button class="text-button" data-open-privacy type="button">Privacy note</button>
+              </div>
               <button class="primary-action full-width" type="submit">Book wash</button>
               <p class="form-alert" id="bookingAlert" role="status"></p>
             </form>
@@ -369,12 +438,12 @@
             <div class="about-story privacy-story">
               <p>
                 THE CARWASH uses your name, phone number, vehicle details, wash history,
-                bookings, and feedback only to run the loyalty card, confirm washes,
-                manage bookings, and reply to customer messages.
+                bookings, and feedback to run the loyalty card, confirm washes, manage bookings,
+                and reply to customer messages. We do not sell customer information.
               </p>
               <p>
-                The customer database is only visible in the owner area after the owner
-                unlocks the device lock.
+                You can ask us to correct or remove your information by calling or messaging
+                THE CARWASH. Owner tools are protected by the owner device lock.
               </p>
               <p>
                 WhatsApp alerts are only sent when a customer has approved WhatsApp updates.
@@ -503,6 +572,13 @@
                 Message
                 <textarea id="feedbackMessage" rows="5" required></textarea>
               </label>
+              <div class="checkbox-row privacy-consent">
+                <input id="feedbackPrivacyConsent" type="checkbox" required />
+                <label for="feedbackPrivacyConsent">
+                  I agree to THE CARWASH using my feedback details to investigate and reply to my message.
+                </label>
+                <button class="text-button" data-open-privacy type="button">Privacy note</button>
+              </div>
               <button class="primary-action full-width" type="submit">Send to owner</button>
               <p class="form-alert" id="feedbackAlert" role="status"></p>
             </form>
@@ -768,6 +844,12 @@
                 <input id="ownerAddWhatsappOptIn" type="checkbox" />
                 <span>WhatsApp alerts approved by customer</span>
               </label>
+              <div class="checkbox-row privacy-consent">
+                <input id="ownerAddPrivacyConsent" type="checkbox" required />
+                <label for="ownerAddPrivacyConsent">
+                  Customer has agreed that THE CARWASH may record these loyalty and booking details.
+                </label>
+              </div>
               <button class="primary-action full-width" type="submit">Add customer</button>
               <p class="form-alert" id="ownerAddCustomerAlert" role="status"></p>
               <div class="customer-invite-card is-hidden" id="ownerAddCustomerInvite"></div>
@@ -1136,6 +1218,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=mono2"></script>
+    <script src="app.js?v=review1"></script>
   </body>
 </html>
